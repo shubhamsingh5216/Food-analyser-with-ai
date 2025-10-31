@@ -5,21 +5,15 @@ import { supabase } from "@/utils/supabase";
 import { getUserIdByPhone } from "./userService";
 
 export class NutritionService {
-  static async fetchNutritionInfo(
-    foodItem: string
-  ): Promise<NutritionInfo | null> {
+  static async fetchNutritionInfo(foodItem: string): Promise<NutritionInfo | null> {
     try {
-      const query = this.formatQuery(foodItem);
       const response = await axios.post(
-        "https://trackapi.nutritionix.com/v2/natural/nutrients",
-        { query },
+        `https://api.nal.usda.gov/fdc/v1/foods/search?api_key=${CONFIG.NUTRITION_API.API_KEY}`,
         {
-          headers: {
-            "Content-Type": "application/json",
-            "x-app-id": CONFIG.NUTRITION_API.APP_ID,
-            "x-app-key": CONFIG.NUTRITION_API.API_KEY,
-          },
-        }
+          query: foodItem,
+          pageSize: 1,
+        },
+        { headers: { "Content-Type": "application/json" } }
       );
       return this.parseResponse(response.data);
     } catch (error) {
@@ -28,31 +22,37 @@ export class NutritionService {
     }
   }
 
+  // No special formatting needed for USDA API, but keeping this in case you want to adapt queries later
   private static formatQuery(foodItem: string): string {
-    return foodItem.includes(" piece") || foodItem.includes(" serving")
-      ? foodItem
-      : `1 serving ${foodItem}`;
+    return foodItem;
   }
 
   private static parseResponse(data: any): NutritionInfo | null {
     if (data?.foods?.[0]) {
       const food = data.foods[0];
+      // Nutrient number mapping from USDA:
+      // 208: Calories, 203: Protein, 204: Total Fat, 205: Carbs, 269: Sugars, 207: Ash, 208: Energy, 291: Fiber, 301: Calcium, 307: Sodium, 601: Cholesterol, 605: Trans Fat, 606: Sat. Fat, 607: MUFA, 608: PUFA, 309: Zinc, 318: Vit A IU, 320: Vit A RAE, 324: Vit D, 401: Vit C, 404: Thiamin, 405: Riboflavin, 601: Cholesterol, 646: Fatty acids, 672: Linoleic acid
+      const getNutrient = (nutrientNumber: number) => {
+        return (
+          food.foodNutrients?.find((n: any) => n.nutrientNumber == nutrientNumber.toString())?.value || 0
+        );
+      };
       return {
-        foodItem: food.food_name,
-        calories: food.nf_calories,
-        totalFat: food.nf_total_fat,
-        saturatedFat: food.nf_saturated_fat,
-        cholesterol: food.nf_cholesterol,
-        sodium: food.nf_sodium,
-        totalCarbohydrate: food.nf_total_carbohydrate,
-        dietaryFiber: food.nf_dietary_fiber,
-        sugars: food.nf_sugars,
-        protein: food.nf_protein,
-        potassium: food.nf_potassium,
-        phosphorus: food.nf_p,
-        servingQty: food.serving_qty,
-        servingUnit: food.serving_unit,
-        servingWeightGrams: food.serving_weight_grams,
+        foodItem: food.description,
+        calories: getNutrient(208),
+        totalFat: getNutrient(204),
+        saturatedFat: getNutrient(606),
+        cholesterol: getNutrient(601),
+        sodium: getNutrient(307),
+        totalCarbohydrate: getNutrient(205),
+        dietaryFiber: getNutrient(291),
+        sugars: getNutrient(269),
+        protein: getNutrient(203),
+        potassium: getNutrient(306),
+        phosphorus: getNutrient(305),
+        servingQty: 1,
+        servingUnit: food.servingSizeUnit || "g",
+        servingWeightGrams: food.servingSize || 100,
         confidence: 1.0,
       };
     }

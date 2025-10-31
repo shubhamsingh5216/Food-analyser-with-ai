@@ -19,8 +19,7 @@ export const GENERIC_FOOD_TERMS = new Set([
 
 export const CONFIG = {
   NUTRITION_API: {
-    APP_ID: "1a908df8",
-    API_KEY: "50201226c32c1a0966731189e08ea2f8",
+    API_KEY: "eZz1JUNA0og5955yz0tdT0MygdwyIxPCTtv7Eo2V", // USDA API Key
   },
   VISION_API: {
     KEY: "AIzaSyBc2TnOZrQ3PWe-7Q2swQgMSvm8ADFZC9I",
