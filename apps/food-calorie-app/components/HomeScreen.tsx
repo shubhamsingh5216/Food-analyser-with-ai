@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import {
   View,
   Text,
@@ -11,10 +11,12 @@ import { LinearGradient } from "expo-linear-gradient";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { Easing } from "react-native-reanimated";
+import { useFocusEffect } from "expo-router";
 import {
   fetchFoodByUserIdForToday,
   getMealTypeByMealIdForToday,
 } from "@/services/NutritionService";
+import { getCurrentUserPhone } from "@/utils/session";
 import { GroupedMeal, Meal, NutrientItem, NutrientTotals } from "@/types";
 
 export default function HomeScreen() {
@@ -173,19 +175,34 @@ export default function HomeScreen() {
     ]).start();
   }, []);
 
-  useEffect(() => {
-    async function fetchFood() {
-      try {
-        const response = await fetchFoodByUserIdForToday("1234567890");
-        if (response?.data) {
-          setFoodData(response.data);
-        }
-      } catch (error) {
-        console.error("Error fetching food data:", error);
+  const fetchFoodData = useCallback(async () => {
+    try {
+      const phone = getCurrentUserPhone();
+      if (!phone) {
+        console.log("No user phone found, skipping fetch");
+        setFoodData([]);
+        return;
       }
+      const response = await fetchFoodByUserIdForToday(phone);
+      if (response?.data) {
+        setFoodData(response.data);
+      }
+    } catch (error) {
+      console.error("Error fetching food data:", error);
     }
-    fetchFood();
   }, []);
+
+  // Fetch data on initial load
+  useEffect(() => {
+    fetchFoodData();
+  }, [fetchFoodData]);
+
+  // Refresh data when screen comes into focus (e.g., returning from camera)
+  useFocusEffect(
+    useCallback(() => {
+      fetchFoodData();
+    }, [fetchFoodData])
+  );
 
   console.log("foodData", JSON.stringify(foodData));
   const getTimeOfDay = (): string => {

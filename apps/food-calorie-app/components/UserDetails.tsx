@@ -16,6 +16,7 @@ import {
   getUserDetailsByPhone,
   insertUserDetails,
 } from "@/services/userService";
+import { getCurrentUserPhone } from "@/utils/session";
 
 export default function UserDetails() {
   const router = useRouter();
@@ -25,7 +26,8 @@ export default function UserDetails() {
   const [gender, setGender] = useState<string>("");
 
   const handleContinue = async () => {
-    await insertUserDetails("1234567890", age, weight, height, gender);
+    const phone = getCurrentUserPhone() || "1234567890"; // Fallback if not logged in
+    await insertUserDetails(phone, age, weight, height, gender);
     router.push("/(tabs)");
   };
 

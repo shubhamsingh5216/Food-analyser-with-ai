@@ -6,11 +6,14 @@ import {
   TouchableOpacity,
   StyleSheet,
   Modal,
+  Alert,
 } from "react-native";
+import { useRouter } from "expo-router";
 import { NutritionInfo } from "../types";
 import { InputText } from "./InputText";
 import { Dropdown } from "./DropDown";
 import { addFoodIntoFoods } from "@/services/NutritionService";
+import { getCurrentUserPhone } from "@/utils/session";
 
 interface NutritionResultsProps {
   nutritionData: NutritionInfo[];
@@ -23,6 +26,7 @@ export const NutritionResults: React.FC<NutritionResultsProps> = ({
   onRetake,
   isVisible,
 }) => {
+  const router = useRouter();
   const [selectedQuantities, setSelectedQuantities] = useState<number[]>(
     new Array(nutritionData.length).fill(100)
   );
@@ -103,28 +107,71 @@ export const NutritionResults: React.FC<NutritionResultsProps> = ({
       newState[index] = true;
       return newState;
     });
-    const multiplier = quantity / item.servingWeightGrams;
-    const foodItem = item.foodItem;
-    const calorie = item.calories * multiplier;
-    const protein = item.protein * multiplier;
-    const carbs = item.totalCarbohydrate * multiplier;
-    const fats = item.totalFat * multiplier;
-    const fiber = item.dietaryFiber * multiplier;
-    const sugars = item.sugars * multiplier;
-    const sodium = item.sodium * multiplier;
-    await addFoodIntoFoods(
-      "1234567890",
-      foodItem,
-      quantity,
-      calorie,
-      protein,
-      carbs,
-      fats,
-      fiber,
-      sugars,
-      sodium,
-      mealType
-    );
+    try {
+      const multiplier = quantity / item.servingWeightGrams;
+      const foodItem = item.foodItem;
+      const calorie = item.calories * multiplier;
+      const protein = item.protein * multiplier;
+      const carbs = item.totalCarbohydrate * multiplier;
+      const fats = item.totalFat * multiplier;
+      const fiber = item.dietaryFiber * multiplier;
+      const sugars = item.sugars * multiplier;
+      const sodium = item.sodium * multiplier;
+      
+      const phone = getCurrentUserPhone();
+      if (!phone) {
+        Alert.alert("Error", "Please login first to add food items.");
+        setIsButtonDisabled((prev) => {
+          const newState = [...prev];
+          newState[index] = false;
+          return newState;
+        });
+        return;
+      }
+
+      const result = await addFoodIntoFoods(
+        phone,
+        foodItem,
+        quantity,
+        calorie,
+        protein,
+        carbs,
+        fats,
+        fiber,
+        sugars,
+        sodium,
+        mealType
+      );
+
+      if (result.error) {
+        const errorMessage = result.error?.message || JSON.stringify(result.error) || "Failed to add food. Please try again.";
+        console.error("Food add error details:", result.error);
+        Alert.alert("Error", `Failed to add food: ${errorMessage}\n\nPlease make sure you are logged in.`);
+        setIsButtonDisabled((prev) => {
+          const newState = [...prev];
+          newState[index] = false;
+          return newState;
+        });
+      } else {
+        Alert.alert("Success", `${foodItem} added successfully!`, [
+          {
+            text: "OK",
+            onPress: () => {
+              onRetake(); // Close modal and reset camera
+              router.push("/(tabs)/"); // Navigate to home tab to see updated values
+            },
+          },
+        ]);
+      }
+    } catch (error) {
+      console.error("Error adding food:", error);
+      Alert.alert("Error", "Failed to add food. Please try again.");
+      setIsButtonDisabled((prev) => {
+        const newState = [...prev];
+        newState[index] = false;
+        return newState;
+      });
+    }
   }
 
   return (

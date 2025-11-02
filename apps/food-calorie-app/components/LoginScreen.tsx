@@ -7,10 +7,13 @@ import {
   StyleSheet,
   KeyboardAvoidingView,
   Platform,
+  Alert,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import { insertUser } from "@/services/userService";
+import { setCurrentUserPhone } from "@/utils/session";
+import { testSupabaseConnection } from "@/utils/supabaseTest";
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -22,8 +25,55 @@ export default function LoginScreen() {
     if (!phone || !name) return;
     try {
       setLoading(true);
-      await insertUser(phone, name);
+      
+      // First, test Supabase connection
+      const connectionTest = await testSupabaseConnection();
+      if (!connectionTest.success) {
+        Alert.alert(
+          "Connection Failed",
+          connectionTest.message + "\n\n" +
+          "To fix this:\n" +
+          "1. Go to Supabase Dashboard (https://supabase.com)\n" +
+          "2. Check if your project is active\n" +
+          "3. Go to Settings > API and verify your URL and API key\n" +
+          "4. Make sure 'users' table exists in your database"
+        );
+        return;
+      }
+      
+      // Proceed with login
+      const result = await insertUser(phone, name);
+      
+      if (result.error) {
+        const errorMsg = result.error.message || JSON.stringify(result.error);
+        
+        // Provide helpful error messages
+        let userMessage = `Failed to login: ${errorMsg}`;
+        
+        if (errorMsg.includes("Network") || errorMsg.includes("fetch")) {
+          userMessage = `Network Error: Cannot connect to database.\n\nPlease check:\n• Your internet connection\n• Supabase project is active\n• Tables exist in your database`;
+        } else if (errorMsg.includes("does not exist") || errorMsg.includes("42P01")) {
+          userMessage = `Database Error: Tables not found.\n\nPlease create the 'users' table in your Supabase database.\n\nGo to SQL Editor and run:\nCREATE TABLE users (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), phone text UNIQUE, name text, created_at timestamp DEFAULT now());`;
+        }
+        
+        Alert.alert("Login Failed", userMessage);
+        return;
+      }
+      
+      if (!result.data?.id) {
+        Alert.alert("Login Failed", "User was not created. Please try again.");
+        return;
+      }
+      
+      console.log("Login successful, user ID:", result.data.id);
+      setCurrentUserPhone(phone); // Save phone for session
       router.push("/(tabs)");
+    } catch (error: any) {
+      console.error("Login error:", error);
+      Alert.alert(
+        "Login Failed", 
+        `An unexpected error occurred: ${error.message || "Please try again."}\n\nIf this persists, check your Supabase configuration.`
+      );
     } finally {
       setLoading(false);
     }

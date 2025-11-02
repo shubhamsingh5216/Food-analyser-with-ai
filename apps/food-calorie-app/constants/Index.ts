@@ -25,3 +25,5 @@ export const CONFIG = {
     KEY: "AIzaSyBc2TnOZrQ3PWe-7Q2swQgMSvm8ADFZC9I",
   },
 };
+//AIzaSyBc2TnOZrQ3PWe-7Q2swQgMSvm8ADFZC9I old key
+//AIzaSyDzg0iZP_nn_XIqCL0bR_lDQ8EqsioWx1c new key

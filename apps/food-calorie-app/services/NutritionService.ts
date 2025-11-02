@@ -73,33 +73,135 @@ export const addFoodIntoFoods = async (
   sodium: number,
   mealType: string
 ) => {
-  const mealId = await addMeal(phone, mealType);
-  const { data, error } = await supabase.from("food").upsert({
-    meal_id: mealId.data?.id,
-    food_name,
-    weight,
-    calorie,
-    protein,
-    carbs,
-    fats,
-    fiber,
-    sugars,
-    sodium,
-  });
-  return { data, error };
+  try {
+    console.log("Adding food:", { phone, food_name, weight, calorie, mealType });
+    
+    // Step 1: Get or create meal
+    const mealResult = await addMeal(phone, mealType);
+    
+    if (mealResult.error) {
+      console.error("Error creating meal:", mealResult.error);
+      return { data: null, error: mealResult.error };
+    }
+    
+    if (!mealResult.data?.id) {
+      console.error("Meal ID is missing:", mealResult);
+      return { 
+        data: null, 
+        error: { message: "Failed to get meal ID", details: mealResult } 
+      };
+    }
+    
+    console.log("Meal created/retrieved with ID:", mealResult.data.id);
+    
+    // Step 2: Add food to the meal
+    const { data, error } = await supabase.from("food").insert({
+      meal_id: mealResult.data.id,
+      food_name,
+      weight,
+      calorie,
+      protein,
+      carbs,
+      fats,
+      fiber,
+      sugars,
+      sodium,
+    }).select();
+    
+    if (error) {
+      console.error("Error inserting food:", error);
+      return { data: null, error };
+    }
+    
+    console.log("Food added successfully:", data);
+    return { data, error: null };
+  } catch (err: any) {
+    console.error("Unexpected error in addFoodIntoFoods:", err);
+    return { 
+      data: null, 
+      error: { message: err.message || "Unexpected error", details: err } 
+    };
+  }
 };
 
 export const addMeal = async (phone: string, mealType: string) => {
-  const userId = await getUserIdByPhone(phone);
-  const { data, error } = await supabase
-    .from("meals")
-    .upsert({
-      name: mealType,
-      user_id: userId.data?.id,
-    })
-    .select("id")
-    .single();
-  return { data, error };
+  try {
+    console.log("Adding meal:", { phone, mealType });
+    
+    // Step 1: Get user ID
+    const userId = await getUserIdByPhone(phone);
+    
+    if (userId.error) {
+      console.error("Error getting user ID:", userId.error);
+      const errorMsg = userId.error.message || JSON.stringify(userId.error);
+      
+      // If it's a network error, provide helpful message
+      if (errorMsg.includes("Network") || errorMsg.includes("fetch") || errorMsg.includes("Failed")) {
+        return { 
+          data: null, 
+          error: { 
+            message: `Network error: Unable to connect to database. Please check your internet connection and Supabase configuration.`,
+            originalError: userId.error
+          } 
+        };
+      }
+      
+      return { data: null, error: userId.error };
+    }
+    
+    if (!userId.data?.id) {
+      console.error("User ID is missing. User may not exist for phone:", phone);
+      return { 
+        data: null, 
+        error: { 
+          message: `User not found for phone: ${phone}. Please login first.`,
+          suggestion: "Make sure you've logged in with this phone number."
+        } 
+      };
+    }
+    
+    console.log("User ID found:", userId.data.id);
+    
+    // Step 2: Check if meal already exists today
+    const today = new Date().toISOString().split("T")[0];
+    const { data: existingMeal } = await supabase
+      .from("meals")
+      .select("id")
+      .eq("user_id", userId.data.id)
+      .eq("name", mealType)
+      .gte("created_at", `${today}T00:00:00.000Z`)
+      .lt("created_at", `${today}T23:59:59.999Z`)
+      .single();
+    
+    if (existingMeal) {
+      console.log("Existing meal found:", existingMeal.id);
+      return { data: existingMeal, error: null };
+    }
+    
+    // Step 3: Create new meal
+    const { data, error } = await supabase
+      .from("meals")
+      .insert({
+        name: mealType,
+        user_id: userId.data.id,
+      })
+      .select("id")
+      .single();
+    
+    if (error) {
+      console.error("Error inserting meal:", error);
+      return { data: null, error };
+    }
+    
+    console.log("New meal created with ID:", data.id);
+    return { data, error: null };
+  } catch (err: any) {
+    console.error("Unexpected error in addMeal:", err);
+    return { 
+      data: null, 
+      error: { message: err.message || "Unexpected error", details: err } 
+    };
+  }
 };
 
 export const getMealsIdByUserIdForToday = async (phone: string) => {
