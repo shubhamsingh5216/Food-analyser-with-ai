@@ -7,10 +7,11 @@ import { useTheme } from "@/contexts/ThemeContext";
 
 export default function WelcomeScreen() {
   const router = useRouter();
-  const { currentTheme } = useTheme();
-  const isDark = currentTheme === 'dark';
+  const { currentTheme, themeMode } = useTheme();
+  // For auto mode, always use dark theme like in the image
+  const isDark = themeMode === 'auto' ? true : (currentTheme === 'dark');
   
-  // Theme-aware overlay - much lighter in light mode
+  // Theme-aware overlay - much lighter in light mode, dark for auto and dark mode
   const overlayColors: [string, string] = isDark 
     ? ["rgba(0,0,0,0.55)", "rgba(0,0,0,0.85)"] 
     : ["rgba(255,255,255,0.3)", "rgba(255,255,255,0.5)"];
@@ -21,6 +22,7 @@ export default function WelcomeScreen() {
   const chipBgColor = isDark ? "rgba(255,255,255,0.08)" : "rgba(255,255,255,0.9)";
   const chipBorderColor = isDark ? "rgba(255,255,255,0.18)" : "rgba(0,0,0,0.1)";
   const chipTextColor = isDark ? "#E5E7EB" : "#1e1e1e";
+  // For auto mode, use the light green color like in the image (#9FE870)
   const badgeTextColor = isDark ? "#9FE870" : "#22C55E";
   const badgeBgColor = isDark ? "rgba(255,255,255,0.08)" : "rgba(34,197,94,0.15)";
   const badgeBorderColor = isDark ? "rgba(255,255,255,0.18)" : "rgba(34,197,94,0.3)";
