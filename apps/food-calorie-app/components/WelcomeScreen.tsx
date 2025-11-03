@@ -3,9 +3,31 @@ import { View, Text, ImageBackground, TouchableOpacity } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { StatusBar } from "expo-status-bar";
 import { useRouter } from "expo-router";
+import { useTheme } from "@/contexts/ThemeContext";
 
 export default function WelcomeScreen() {
   const router = useRouter();
+  const { currentTheme } = useTheme();
+  const isDark = currentTheme === 'dark';
+  
+  // Theme-aware overlay - much lighter in light mode
+  const overlayColors: [string, string] = isDark 
+    ? ["rgba(0,0,0,0.55)", "rgba(0,0,0,0.85)"] 
+    : ["rgba(255,255,255,0.3)", "rgba(255,255,255,0.5)"];
+  
+  // Theme-aware colors
+  const textColor = isDark ? "#ffffff" : "#1e1e1e";
+  const subtitleColor = isDark ? "#D1D5DB" : "#4B5563";
+  const chipBgColor = isDark ? "rgba(255,255,255,0.08)" : "rgba(255,255,255,0.9)";
+  const chipBorderColor = isDark ? "rgba(255,255,255,0.18)" : "rgba(0,0,0,0.1)";
+  const chipTextColor = isDark ? "#E5E7EB" : "#1e1e1e";
+  const badgeTextColor = isDark ? "#9FE870" : "#22C55E";
+  const badgeBgColor = isDark ? "rgba(255,255,255,0.08)" : "rgba(34,197,94,0.15)";
+  const badgeBorderColor = isDark ? "rgba(255,255,255,0.18)" : "rgba(34,197,94,0.3)";
+  const buttonBorderColor = isDark ? "rgba(255,255,255,0.22)" : "rgba(22,163,74,0.3)";
+  const buttonBgColor = isDark ? "rgba(255,255,255,0.06)" : "rgba(34,197,94,0.1)";
+  const buttonTextColor = isDark ? "#D1FAE5" : "#16A34A";
+  const footerTextColor = isDark ? "#9CA3AF" : "#6B7280";
 
   return (
     <ImageBackground
@@ -13,12 +35,12 @@ export default function WelcomeScreen() {
       style={{ flex: 1 }}
       resizeMode="cover"
     >
-      {/* Dark overlay */}
+      {/* Overlay */}
       <LinearGradient
-        colors={["rgba(0,0,0,0.55)", "rgba(0,0,0,0.85)"]}
+        colors={overlayColors}
         style={{ flex: 1 }}
       >
-        <StatusBar style="light" />
+        <StatusBar style={isDark ? "light" : "dark"} />
 
         {/* Content */}
         <View
@@ -35,8 +57,8 @@ export default function WelcomeScreen() {
             <View
               style={{
                 alignSelf: "flex-start",
-                backgroundColor: "rgba(255,255,255,0.08)",
-                borderColor: "rgba(255,255,255,0.18)",
+                backgroundColor: badgeBgColor,
+                borderColor: badgeBorderColor,
                 borderWidth: 1,
                 paddingVertical: 6,
                 paddingHorizontal: 12,
@@ -44,7 +66,7 @@ export default function WelcomeScreen() {
                 marginBottom: 16,
               }}
             >
-              <Text style={{ color: "#9FE870", fontWeight: "600", fontSize: 12 }}>
+              <Text style={{ color: badgeTextColor, fontWeight: "600", fontSize: 12 }}>
                 AI-Powered Nutrition
               </Text>
             </View>
@@ -54,7 +76,7 @@ export default function WelcomeScreen() {
                 fontSize: 40,
                 lineHeight: 48,
                 fontWeight: "800",
-                color: "#ffffff",
+                color: textColor,
               }}
             >
               NutriTrack
@@ -64,7 +86,7 @@ export default function WelcomeScreen() {
                 marginTop: 10,
                 fontSize: 16,
                 lineHeight: 22,
-                color: "#D1D5DB",
+                color: subtitleColor,
               }}
             >
               Fuel your body smarter. Snap your meal, get instant calories and
@@ -82,8 +104,8 @@ export default function WelcomeScreen() {
                 <View
                   key={chip}
                   style={{
-                    backgroundColor: "rgba(255,255,255,0.08)",
-                    borderColor: "rgba(255,255,255,0.18)",
+                    backgroundColor: chipBgColor,
+                    borderColor: chipBorderColor,
                     borderWidth: 1,
                     paddingVertical: 8,
                     paddingHorizontal: 12,
@@ -92,7 +114,7 @@ export default function WelcomeScreen() {
                     marginBottom: 10,
                   }}
                 >
-                  <Text style={{ color: "#E5E7EB", fontSize: 12, fontWeight: "600" }}>
+                  <Text style={{ color: chipTextColor, fontSize: 12, fontWeight: "600" }}>
                     {chip}
                   </Text>
                 </View>
@@ -135,21 +157,21 @@ export default function WelcomeScreen() {
                 paddingVertical: 16,
                 alignItems: "center",
                 borderWidth: 1,
-                borderColor: "rgba(255,255,255,0.22)",
-                backgroundColor: "rgba(255,255,255,0.06)",
+                borderColor: buttonBorderColor,
+                backgroundColor: buttonBgColor,
                 marginTop: 14,
               }}
               onPress={() => router.push("/(auth)/login")}
               activeOpacity={0.8}
             >
-              <Text style={{ color: "#D1FAE5", fontSize: 18, fontWeight: "800" }}>
+              <Text style={{ color: buttonTextColor, fontSize: 18, fontWeight: "800" }}>
                 Login
               </Text>
             </TouchableOpacity>
 
             <Text
               style={{
-                color: "#9CA3AF",
+                color: footerTextColor,
                 marginTop: 16,
                 fontSize: 12,
                 textAlign: "center",
