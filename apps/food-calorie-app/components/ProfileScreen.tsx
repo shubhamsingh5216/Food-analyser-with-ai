@@ -9,6 +9,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   Alert,
+  Modal,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -16,14 +17,17 @@ import { useRouter, useFocusEffect } from "expo-router";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { getUserDetailsByPhone, insertUserDetails } from "@/services/userService";
 import { getCurrentUserPhone, clearCurrentUserPhone } from "@/utils/session";
+import { useTheme } from "@/contexts/ThemeContext";
 
 export default function ProfileScreen() {
   const router = useRouter();
+  const { themeMode, currentTheme, setThemeMode } = useTheme();
   const [userDetails, setUserDetails] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string>("");
+  const [showThemeModal, setShowThemeModal] = useState(false);
   
   // Form state
   const [age, setAge] = useState("");
@@ -32,6 +36,11 @@ export default function ProfileScreen() {
   const [gender, setGender] = useState<string>("");
   
   const genderOptions = ["male", "female", "other"];
+  
+  const handleThemeChange = async (mode: 'light' | 'dark' | 'auto') => {
+    await setThemeMode(mode);
+    setShowThemeModal(false);
+  };
 
   const loadUserDetails = async () => {
     try {
@@ -117,20 +126,32 @@ export default function ProfileScreen() {
     router.replace("/(auth)");
   };
 
+  const isDark = currentTheme === 'dark';
+  const gradientColors: [string, string] = isDark ? ["#434343", "#000000"] : ["#F8F9FA", "#E9ECEF"];
+  const headerBgColor = isDark ? "rgba(255, 255, 255, 0.1)" : "rgba(0, 0, 0, 0.05)";
+  const textColor = isDark ? "white" : "#1e1e1e";
+  const iconColor = isDark ? "white" : "#1e1e1e";
+  const loadingTextColor = isDark ? "white" : "#1e1e1e";
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <LinearGradient
-        colors={["#434343", "#000000"]}
+        colors={gradientColors}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={styles.container}
       >
-        <View style={styles.header}>
-          <Text style={styles.headerTitle}>Profile</Text>
+        <View style={[styles.header, { backgroundColor: headerBgColor }]}>
+          <Text style={[styles.headerTitle, { color: textColor }]}>Profile</Text>
           {!loading && userDetails && !isEditing && (
-            <TouchableOpacity onPress={handleEdit} style={styles.editButton}>
-              <MaterialCommunityIcons name="pencil" size={24} color="white" />
-            </TouchableOpacity>
+            <View style={styles.headerIcons}>
+              <TouchableOpacity onPress={handleEdit} style={[styles.editButton, styles.pencilButton]}>
+                <MaterialCommunityIcons name="pencil" size={24} color={iconColor} />
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => setShowThemeModal(true)} style={styles.settingsButton}>
+                <MaterialCommunityIcons name="cog" size={24} color={iconColor} />
+              </TouchableOpacity>
+            </View>
           )}
         </View>
 
@@ -146,7 +167,7 @@ export default function ProfileScreen() {
             keyboardShouldPersistTaps="handled"
           >
             {loading ? (
-              <Text style={styles.loadingText}>Loading...</Text>
+              <Text style={[styles.loadingText, { color: loadingTextColor }]}>Loading...</Text>
             ) : userDetails || isEditing ? (
               <View style={styles.card}>
                 <Text style={styles.cardTitle}>Personal Information</Text>
@@ -305,6 +326,97 @@ export default function ProfileScreen() {
             )}
           </ScrollView>
         </KeyboardAvoidingView>
+        
+        {/* Theme Selection Modal */}
+        <Modal
+          visible={showThemeModal}
+          transparent={true}
+          animationType="fade"
+          onRequestClose={() => setShowThemeModal(false)}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContent}>
+              <Text style={styles.modalTitle}>Select Theme</Text>
+              <Text style={styles.modalSubtitle}>Choose your preferred app theme</Text>
+              
+              <TouchableOpacity
+                style={[
+                  styles.themeOption,
+                  themeMode === 'light' && styles.themeOptionSelected
+                ]}
+                onPress={() => handleThemeChange('light')}
+              >
+                <MaterialCommunityIcons 
+                  name="white-balance-sunny" 
+                  size={24} 
+                  color={themeMode === 'light' ? "#22C55E" : "#666"} 
+                />
+                <Text style={[
+                  styles.themeOptionText,
+                  themeMode === 'light' && styles.themeOptionTextSelected
+                ]}>
+                  Light Mode
+                </Text>
+                {themeMode === 'light' && (
+                  <MaterialCommunityIcons name="check-circle" size={24} color="#22C55E" />
+                )}
+              </TouchableOpacity>
+              
+              <TouchableOpacity
+                style={[
+                  styles.themeOption,
+                  themeMode === 'dark' && styles.themeOptionSelected
+                ]}
+                onPress={() => handleThemeChange('dark')}
+              >
+                <MaterialCommunityIcons 
+                  name="weather-night" 
+                  size={24} 
+                  color={themeMode === 'dark' ? "#22C55E" : "#666"} 
+                />
+                <Text style={[
+                  styles.themeOptionText,
+                  themeMode === 'dark' && styles.themeOptionTextSelected
+                ]}>
+                  Dark Mode
+                </Text>
+                {themeMode === 'dark' && (
+                  <MaterialCommunityIcons name="check-circle" size={24} color="#22C55E" />
+                )}
+              </TouchableOpacity>
+              
+              <TouchableOpacity
+                style={[
+                  styles.themeOption,
+                  themeMode === 'auto' && styles.themeOptionSelected
+                ]}
+                onPress={() => handleThemeChange('auto')}
+              >
+                <MaterialCommunityIcons 
+                  name="theme-light-dark" 
+                  size={24} 
+                  color={themeMode === 'auto' ? "#22C55E" : "#666"} 
+                />
+                <Text style={[
+                  styles.themeOptionText,
+                  themeMode === 'auto' && styles.themeOptionTextSelected
+                ]}>
+                  Auto (System)
+                </Text>
+                {themeMode === 'auto' && (
+                  <MaterialCommunityIcons name="check-circle" size={24} color="#22C55E" />
+                )}
+              </TouchableOpacity>
+              
+              <TouchableOpacity
+                style={styles.modalCloseButton}
+                onPress={() => setShowThemeModal(false)}
+              >
+                <Text style={styles.modalCloseButtonText}>Close</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
       </LinearGradient>
     </SafeAreaView>
   );
@@ -333,9 +445,83 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     color: "white",
   },
+  headerIcons: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
   editButton: {
     padding: 8,
     borderRadius: 8,
+  },
+  pencilButton: {
+    marginRight: 4,
+  },
+  settingsButton: {
+    padding: 8,
+    borderRadius: 8,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  modalContent: {
+    backgroundColor: "white",
+    borderRadius: 20,
+    padding: 24,
+    width: "85%",
+    maxWidth: 400,
+  },
+  modalTitle: {
+    fontSize: 24,
+    fontWeight: "bold",
+    color: "#1e1e1e",
+    marginBottom: 8,
+    textAlign: "center",
+  },
+  modalSubtitle: {
+    fontSize: 14,
+    color: "#666",
+    marginBottom: 24,
+    textAlign: "center",
+  },
+  themeOption: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: 16,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: "#E5E7EB",
+    marginBottom: 12,
+    backgroundColor: "#F9FAFB",
+  },
+  themeOptionSelected: {
+    borderColor: "#22C55E",
+    backgroundColor: "#F0FDF4",
+  },
+  themeOptionText: {
+    flex: 1,
+    marginLeft: 12,
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#666",
+  },
+  themeOptionTextSelected: {
+    color: "#1e1e1e",
+    fontWeight: "700",
+  },
+  modalCloseButton: {
+    marginTop: 20,
+    padding: 14,
+    borderRadius: 12,
+    backgroundColor: "#F3F4F6",
+    alignItems: "center",
+  },
+  modalCloseButtonText: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#666",
   },
   scrollView: {
     flex: 1,

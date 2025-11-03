@@ -14,6 +14,7 @@ import { InputText } from "./InputText";
 import { Dropdown } from "./DropDown";
 import { addFoodIntoFoods } from "@/services/NutritionService";
 import { getCurrentUserPhone } from "@/utils/session";
+import { useTheme } from "@/contexts/ThemeContext";
 
 interface NutritionResultsProps {
   nutritionData: NutritionInfo[];
@@ -27,6 +28,8 @@ export const NutritionResults: React.FC<NutritionResultsProps> = ({
   isVisible,
 }) => {
   const router = useRouter();
+  const { currentTheme } = useTheme();
+  const isDark = currentTheme === 'dark';
   const [selectedQuantities, setSelectedQuantities] = useState<number[]>(
     new Array(nutritionData.length).fill(100)
   );
@@ -36,6 +39,15 @@ export const NutritionResults: React.FC<NutritionResultsProps> = ({
   const [isButtonDisabled, setIsButtonDisabled] = useState<boolean[]>(
     new Array(nutritionData.length).fill(false)
   );
+
+  // Theme colors
+  const modalOverlayColor = isDark ? "rgba(0, 0, 0, 0.5)" : "rgba(0, 0, 0, 0.3)";
+  const modalBgColor = isDark ? "#1a1a1a" : "#FFFFFF";
+  const cardBgColor = isDark ? "#2a2a2a" : "#F8F9FA";
+  const textColor = isDark ? "#fff" : "#1e1e1e";
+  const closeTextColor = isDark ? "#fff" : "#1e1e1e";
+  const nutrientTextColor = isDark ? "#fff" : "#1e1e1e";
+  const disabledButtonColor = isDark ? "#4a4a4a" : "#D1D5DB";
 
   console.log("isButtonDisabled", JSON.stringify(isButtonDisabled));
 
@@ -176,12 +188,12 @@ export const NutritionResults: React.FC<NutritionResultsProps> = ({
 
   return (
     <Modal visible={isVisible} animationType="slide" transparent={true}>
-      <View style={styles.modalContainer}>
-        <View style={styles.modalContent}>
+      <View style={[styles.modalContainer, { backgroundColor: modalOverlayColor }]}>
+        <View style={[styles.modalContent, { backgroundColor: modalBgColor }]}>
           <View style={styles.headerContainer}>
-            <Text style={styles.title}>Food Analysis</Text>
+            <Text style={[styles.title, { color: textColor }]}>Food Analysis</Text>
             <TouchableOpacity style={styles.closeButton} onPress={onRetake}>
-              <Text style={styles.closeText}>✕</Text>
+              <Text style={[styles.closeText, { color: closeTextColor }]}>✕</Text>
             </TouchableOpacity>
           </View>
 
@@ -192,9 +204,9 @@ export const NutritionResults: React.FC<NutritionResultsProps> = ({
                 selectedQuantities[index] / item.servingWeightGrams
               );
               return (
-                <View key={index} style={styles.nutritionItem}>
+                <View key={index} style={[styles.nutritionItem, { backgroundColor: cardBgColor }]}>
                   <View style={styles.itemHeader}>
-                    <Text style={styles.foodName}>{item.foodItem}</Text>
+                    <Text style={[styles.foodName, { color: textColor }]}>{item.foodItem}</Text>
                     <Text style={styles.confidence}>
                       {Math.round(item.confidence * 100)}%
                     </Text>
@@ -202,22 +214,22 @@ export const NutritionResults: React.FC<NutritionResultsProps> = ({
                   <Text style={styles.calories}>{nutrients.calories} kcal</Text>
 
                   <View style={styles.nutrientDetails}>
-                    <Text style={styles.nutrientText}>
+                    <Text style={[styles.nutrientText, { color: nutrientTextColor }]}>
                       Protein: {nutrients.protein} g
                     </Text>
-                    <Text style={styles.nutrientText}>
+                    <Text style={[styles.nutrientText, { color: nutrientTextColor }]}>
                       Carbs: {nutrients.totalCarbohydrate} g
                     </Text>
-                    <Text style={styles.nutrientText}>
+                    <Text style={[styles.nutrientText, { color: nutrientTextColor }]}>
                       Fats: {nutrients.totalFat} g
                     </Text>
-                    <Text style={styles.nutrientText}>
+                    <Text style={[styles.nutrientText, { color: nutrientTextColor }]}>
                       Fiber: {nutrients.dietaryFiber} g
                     </Text>
-                    <Text style={styles.nutrientText}>
+                    <Text style={[styles.nutrientText, { color: nutrientTextColor }]}>
                       Sugars: {nutrients.sugars} g
                     </Text>
-                    <Text style={styles.nutrientText}>
+                    <Text style={[styles.nutrientText, { color: nutrientTextColor }]}>
                       Sodium: {nutrients.sodium} mg
                     </Text>
                   </View>
@@ -248,7 +260,7 @@ export const NutritionResults: React.FC<NutritionResultsProps> = ({
                   <TouchableOpacity
                     style={[
                       styles.addButton,
-                      isButtonDisabled[index] && { backgroundColor: "grey" },
+                      isButtonDisabled[index] && { backgroundColor: disabledButtonColor },
                     ]}
                     onPress={() =>
                       addItemIntoDB(
@@ -280,10 +292,8 @@ const styles = StyleSheet.create({
   modalContainer: {
     flex: 1,
     justifyContent: "flex-end",
-    backgroundColor: "rgba(0, 0, 0, 0.5)", // Semi-transparent background
   },
   modalContent: {
-    backgroundColor: "#1a1a1a",
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     minHeight: "60%",

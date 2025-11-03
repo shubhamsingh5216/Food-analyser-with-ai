@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { View, StyleSheet, Text, TouchableOpacity, Modal, FlatList } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { useTheme } from "@/contexts/ThemeContext";
 
 interface DropdownProps {
   options: { label: string; value: string }[];
@@ -20,9 +21,20 @@ export const Dropdown: React.FC<DropdownProps> = ({
   style,
   isDisabled,
 }) => {
+  const { currentTheme } = useTheme();
+  const isDark = currentTheme === 'dark';
   const [modalVisible, setModalVisible] = useState(false);
 
   const selectedOption = options.find(opt => opt.value === selectedValue);
+  
+  // Theme colors
+  const modalOverlayColor = isDark ? "rgba(0, 0, 0, 0.5)" : "rgba(0, 0, 0, 0.3)";
+  const modalBgColor = isDark ? "#2a2a2a" : "#FFFFFF";
+  const optionBgColor = isDark ? "#3a3a3a" : "#F8F9FA";
+  const optionSelectedBgColor = "#4CAF50"; // Keep green for selected
+  const textColor = isDark ? "#fff" : "#1e1e1e";
+  const cancelButtonBgColor = isDark ? "#3a3a3a" : "#F3F4F6";
+  const cancelButtonTextColor = isDark ? "#fff" : "#1e1e1e";
 
   const getMealColor = (mealType: string) => {
     // Use the exact same green color as the "Add Dish" button (#4CAF50)
@@ -78,12 +90,12 @@ export const Dropdown: React.FC<DropdownProps> = ({
         onRequestClose={() => setModalVisible(false)}
       >
         <TouchableOpacity
-          style={styles.modalOverlay}
+          style={[styles.modalOverlay, { backgroundColor: modalOverlayColor }]}
           activeOpacity={1}
           onPress={() => setModalVisible(false)}
         >
-          <View style={styles.modalContent} onStartShouldSetResponder={() => true}>
-            <Text style={styles.modalTitle}>Select Meal Type</Text>
+          <View style={[styles.modalContent, { backgroundColor: modalBgColor }]} onStartShouldSetResponder={() => true}>
+            <Text style={[styles.modalTitle, { color: textColor }]}>Select Meal Type</Text>
             <FlatList
               data={options}
               keyExtractor={(item) => item.value}
@@ -101,19 +113,19 @@ export const Dropdown: React.FC<DropdownProps> = ({
                     <View
                       style={[
                         styles.optionGradient,
-                        { backgroundColor: isSelected ? itemColor.backgroundColor : "#3a3a3a" }
+                        { backgroundColor: isSelected ? optionSelectedBgColor : optionBgColor }
                       ]}
                     >
                       <View style={styles.optionContent}>
                         <MaterialCommunityIcons
                           name={itemColor.icon as any}
                           size={24}
-                          color={isSelected ? "white" : "#fff"}
+                          color={isSelected ? "white" : textColor}
                         />
                         <Text
                           style={[
                             styles.optionText,
-                            isSelected ? styles.optionTextSelected : styles.optionTextUnselected,
+                            { color: isSelected ? "#FFFFFF" : textColor },
                           ]}
                         >
                           {item.label}
@@ -133,9 +145,9 @@ export const Dropdown: React.FC<DropdownProps> = ({
             />
             <TouchableOpacity
               onPress={() => setModalVisible(false)}
-              style={styles.cancelButton}
+              style={[styles.cancelButton, { backgroundColor: cancelButtonBgColor }]}
             >
-              <Text style={styles.cancelButtonText}>Cancel</Text>
+              <Text style={[styles.cancelButtonText, { color: cancelButtonTextColor }]}>Cancel</Text>
             </TouchableOpacity>
           </View>
         </TouchableOpacity>
@@ -186,13 +198,11 @@ const styles = StyleSheet.create({
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
     justifyContent: "center",
     alignItems: "center",
     padding: 20,
   },
   modalContent: {
-    backgroundColor: "#2a2a2a",
     borderRadius: 20,
     padding: 20,
     width: "100%",
@@ -206,7 +216,6 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: 20,
     fontWeight: "bold",
-    color: "#fff",
     marginBottom: 20,
     textAlign: "center",
   },
@@ -236,21 +245,13 @@ const styles = StyleSheet.create({
     flex: 1,
     marginLeft: 12,
   },
-  optionTextSelected: {
-    color: "#FFFFFF",
-  },
-  optionTextUnselected: {
-    color: "#FFFFFF",
-  },
   cancelButton: {
     marginTop: 16,
     paddingVertical: 12,
     borderRadius: 12,
-    backgroundColor: "#3a3a3a",
     alignItems: "center",
   },
   cancelButtonText: {
-    color: "#fff",
     fontSize: 16,
     fontWeight: "600",
   },

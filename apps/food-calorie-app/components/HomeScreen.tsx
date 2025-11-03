@@ -19,8 +19,11 @@ import {
 import { getUserNameByPhone } from "@/services/userService";
 import { getCurrentUserPhone } from "@/utils/session";
 import { GroupedMeal, Meal, NutrientItem, NutrientTotals } from "@/types";
+import { useTheme } from "@/contexts/ThemeContext";
 
 export default function HomeScreen() {
+  const { currentTheme } = useTheme();
+  const isDark = currentTheme === 'dark';
   const [foodData, setFoodData] = useState<Meal[]>([]);
   const [userName, setUserName] = useState<string>("");
   const fadeAnim = React.useRef(new Animated.Value(0)).current;
@@ -28,6 +31,15 @@ export default function HomeScreen() {
   const rotateAnim = React.useRef(new Animated.Value(0)).current;
   const cameraButtonAnim = React.useRef(new Animated.Value(1)).current;
   const pulseAnim = React.useRef(new Animated.Value(1)).current;
+
+  const gradientColors: [string, string] = isDark ? ["#434343", "#000000"] : ["#F8F9FA", "#E9ECEF"];
+  const headerBgColor = isDark ? "rgba(255, 255, 255, 0.1)" : "rgba(0, 0, 0, 0.05)";
+  const textColor = isDark ? "white" : "#1e1e1e";
+  const secondaryTextColor = isDark ? "rgba(255, 255, 255, 0.9)" : "rgba(30, 30, 30, 0.9)";
+  const dateTextColor = isDark ? "rgba(255, 255, 255, 0.8)" : "rgba(30, 30, 30, 0.8)";
+  const sectionTitleColor = isDark ? "white" : "#1e1e1e";
+  const cameraButtonColors: [string, string] = isDark ? ["#434343", "#000000"] : ["#E9ECEF", "#DEE2E6"];
+  const cameraIconColor = isDark ? "white" : "#1e1e1e";
 
   const calculateTotalNutrients = (): NutrientTotals => {
     return foodData.reduce(
@@ -299,22 +311,22 @@ export default function HomeScreen() {
   return (
     <SafeAreaView style={styles.safeArea}>
       <LinearGradient
-        colors={["#434343", "#000000"]}
+        colors={gradientColors}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={styles.container}
       >
-        <View style={styles.headerContainer}>
+        <View style={[styles.headerContainer, { backgroundColor: headerBgColor }]}>
           <View>
-            <Animated.Text style={[styles.greeting, { opacity: fadeAnim }]}>
+            <Animated.Text style={[styles.greeting, { opacity: fadeAnim, color: textColor }]}>
               Good {getTimeOfDay()}!
             </Animated.Text>
             {userName && (
-              <Animated.Text style={[styles.userName, { opacity: fadeAnim }]}>
+              <Animated.Text style={[styles.userName, { opacity: fadeAnim, color: secondaryTextColor }]}>
                 {userName}
               </Animated.Text>
             )}
-            <Animated.Text style={[styles.date, { opacity: fadeAnim }]}>
+            <Animated.Text style={[styles.date, { opacity: fadeAnim, color: dateTextColor }]}>
               {new Date().toLocaleDateString("en-US", {
                 weekday: "long",
                 month: "long",
@@ -331,7 +343,7 @@ export default function HomeScreen() {
             {nutrients.map(renderNutrientCard)}
           </View>
           <View style={styles.mealHistoryContainer}>
-            <Text style={styles.sectionTitle}>Today's Meals</Text>
+            <Text style={[styles.sectionTitle, { color: sectionTitleColor }]}>Today's Meals</Text>
             {mealHistory.map((meal, index) => (
               <Animated.View
                 key={`${meal.time}-${index}`}
@@ -401,12 +413,12 @@ export default function HomeScreen() {
               ]}
             >
               <LinearGradient
-                colors={["#434343", "#000000"]}
+                colors={cameraButtonColors}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
                 style={styles.cameraButtonGradient}
               >
-                <MaterialCommunityIcons name="camera" size={35} color="white" />
+                <MaterialCommunityIcons name="camera" size={35} color={cameraIconColor} />
               </LinearGradient>
             </Animated.View>
           </View>

@@ -17,9 +17,23 @@ import {
   insertUserDetails,
 } from "@/services/userService";
 import { getCurrentUserPhone } from "@/utils/session";
+import { useTheme } from "@/contexts/ThemeContext";
 
 export default function UserDetails() {
   const router = useRouter();
+  const { currentTheme } = useTheme();
+  const isDark = currentTheme === 'dark';
+  const bgColor = isDark ? "#0B1220" : "#FFFFFF";
+  const cardBgColor = isDark ? "#0F172A" : "#F8F9FA";
+  const cardBorderColor = isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.1)";
+  const labelColor = isDark ? "#C7D2FE" : "#1e1e1e";
+  const inputBgColor = isDark ? "#0B1220" : "#FFFFFF";
+  const inputBorderColor = isDark ? "#1F2937" : "#D1D5DB";
+  const inputTextColor = isDark ? "#FFFFFF" : "#1e1e1e";
+  const segmentBgColor = isDark ? "#0B1220" : "#FFFFFF";
+  const segmentBorderColor = isDark ? "#374151" : "#D1D5DB";
+  const segmentTextColor = isDark ? "#E5E7EB" : "#1e1e1e";
+  const footerTextColor = isDark ? "#9CA3AF" : "#666666";
   const [age, setAge] = useState("");
   const [weight, setWeight] = useState("");
   const [height, setHeight] = useState("");
@@ -52,7 +66,7 @@ export default function UserDetails() {
   const genderOptions = ["male", "female", "other"];
 
   return (
-    <View style={{ flex: 1, backgroundColor: "#0B1220" }}>
+    <View style={{ flex: 1, backgroundColor: bgColor }}>
       {/* Header */}
       <LinearGradient
         colors={["#0EA5E9", "#10B981"]}
@@ -73,12 +87,12 @@ export default function UserDetails() {
         keyboardVerticalOffset={Platform.OS === "ios" ? 80 : 0}
       >
         <ScrollView contentContainerStyle={styles.content} bounces={false}>
-          <View style={styles.card}>
+          <View style={[styles.card, { backgroundColor: cardBgColor, borderColor: cardBorderColor }]}>
             {/* Age */}
             <View style={styles.fieldBlock}>
-              <Text style={styles.label}>Age</Text>
+              <Text style={[styles.label, { color: labelColor }]}>Age</Text>
               <TextInput
-                style={styles.input}
+                style={[styles.input, { backgroundColor: inputBgColor, borderColor: inputBorderColor, color: inputTextColor }]}
                 placeholder="e.g. 22"
                 placeholderTextColor="#9CA3AF"
                 keyboardType="number-pad"
@@ -89,9 +103,9 @@ export default function UserDetails() {
             {/* Weight */}
             <View style={styles.fieldRow}>
               <View style={{ flex: 1, marginRight: 8 }}>
-                <Text style={styles.label}>Weight</Text>
+                <Text style={[styles.label, { color: labelColor }]}>Weight</Text>
                 <TextInput
-                  style={styles.input}
+                  style={[styles.input, { backgroundColor: inputBgColor, borderColor: inputBorderColor, color: inputTextColor }]}
                   placeholder="kg"
                   placeholderTextColor="#9CA3AF"
                   keyboardType="decimal-pad"
@@ -100,9 +114,9 @@ export default function UserDetails() {
                 />
               </View>
               <View style={{ flex: 1, marginLeft: 8 }}>
-                <Text style={styles.label}>Height</Text>
+                <Text style={[styles.label, { color: labelColor }]}>Height</Text>
                 <TextInput
-                  style={styles.input}
+                  style={[styles.input, { backgroundColor: inputBgColor, borderColor: inputBorderColor, color: inputTextColor }]}
                   placeholder="cm"
                   placeholderTextColor="#9CA3AF"
                   keyboardType="decimal-pad"
@@ -114,7 +128,7 @@ export default function UserDetails() {
 
             {/* Gender */}
             <View style={styles.fieldBlock}>
-              <Text style={styles.label}>Gender</Text>
+              <Text style={[styles.label, { color: labelColor }]}>Gender</Text>
               <View style={styles.segmentRow}>
                 {genderOptions.map((option) => {
                   const selected = gender === option;
@@ -125,10 +139,10 @@ export default function UserDetails() {
                       activeOpacity={0.8}
                       style={[
                         styles.segment,
-                        selected && { backgroundColor: "#10B981", borderColor: "#10B981" },
+                        { backgroundColor: selected ? "#10B981" : segmentBgColor, borderColor: selected ? "#10B981" : segmentBorderColor },
                       ]}
                     >
-                      <Text style={[styles.segmentText, selected && { color: "#0B1220", fontWeight: "800" }]}>
+                      <Text style={[styles.segmentText, { color: selected ? "#0B1220" : segmentTextColor }, selected && { fontWeight: "800" }]}>
                         {option.charAt(0).toUpperCase() + option.slice(1)}
                       </Text>
                     </TouchableOpacity>
@@ -164,7 +178,7 @@ export default function UserDetails() {
             </TouchableOpacity>
           </View>
 
-          <Text style={styles.footerNote}>
+          <Text style={[styles.footerNote, { color: footerTextColor }]}>
             Your data is stored securely. You can edit details later in Profile.
           </Text>
         </ScrollView>

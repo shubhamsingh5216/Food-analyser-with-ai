@@ -14,9 +14,22 @@ import { useRouter } from "expo-router";
 import { insertUser } from "@/services/userService";
 import { setCurrentUserPhone } from "@/utils/session";
 import { testSupabaseConnection } from "@/utils/supabaseTest";
+import { useTheme } from "@/contexts/ThemeContext";
 
 export default function LoginScreen() {
   const router = useRouter();
+  const { currentTheme } = useTheme();
+  const isDark = currentTheme === 'dark';
+  const bgColor = isDark ? "#0B1220" : "#FFFFFF";
+  const cardBgColor = isDark ? "#0F172A" : "#F8F9FA";
+  const cardBorderColor = isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.1)";
+  const textColor = isDark ? "#ffffff" : "#1e1e1e";
+  const subtitleColor = isDark ? "#E5E7EB" : "#666666";
+  const labelColor = isDark ? "#C7D2FE" : "#1e1e1e";
+  const inputBgColor = isDark ? "#0B1220" : "#FFFFFF";
+  const inputBorderColor = isDark ? "#1F2937" : "#D1D5DB";
+  const inputTextColor = isDark ? "#FFFFFF" : "#1e1e1e";
+  const helperTextColor = isDark ? "#9CA3AF" : "#666666";
   const [phone, setPhone] = useState("");
   const [name, setName] = useState("");
   const [loading, setLoading] = useState(false);
@@ -82,7 +95,7 @@ export default function LoginScreen() {
   const disabled = !phone || !name || loading;
 
   return (
-    <View style={{ flex: 1, backgroundColor: "#0B1220" }}>
+    <View style={{ flex: 1, backgroundColor: bgColor }}>
       <LinearGradient
         colors={["#0EA5E9", "#10B981"]}
         start={{ x: 0, y: 0 }}
@@ -98,11 +111,11 @@ export default function LoginScreen() {
         behavior={Platform.OS === "ios" ? "padding" : undefined}
         keyboardVerticalOffset={Platform.OS === "ios" ? 80 : 0}
       >
-        <View style={styles.card}>
+        <View style={[styles.card, { backgroundColor: cardBgColor, borderColor: cardBorderColor }]}>
           <View style={{ marginBottom: 16 }}>
-            <Text style={styles.label}>Phone</Text>
+            <Text style={[styles.label, { color: labelColor }]}>Phone</Text>
             <TextInput
-              style={styles.input}
+              style={[styles.input, { backgroundColor: inputBgColor, borderColor: inputBorderColor, color: inputTextColor }]}
               placeholder="Enter phone number"
               placeholderTextColor="#9CA3AF"
               keyboardType="phone-pad"
@@ -111,9 +124,9 @@ export default function LoginScreen() {
             />
           </View>
           <View style={{ marginBottom: 8 }}>
-            <Text style={styles.label}>Name</Text>
+            <Text style={[styles.label, { color: labelColor }]}>Name</Text>
             <TextInput
-              style={styles.input}
+              style={[styles.input, { backgroundColor: inputBgColor, borderColor: inputBorderColor, color: inputTextColor }]}
               placeholder="Enter full name"
               placeholderTextColor="#9CA3AF"
               value={name}
@@ -137,7 +150,7 @@ export default function LoginScreen() {
             </LinearGradient>
           </TouchableOpacity>
 
-          <Text style={styles.helper}>We’ll create your account if it doesn’t exist.</Text>
+          <Text style={[styles.helper, { color: helperTextColor }]}>We'll create your account if it doesn't exist.</Text>
         </View>
       </KeyboardAvoidingView>
     </View>

@@ -46,6 +46,15 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
+        name="bmi"
+        options={{
+          title: "BMI",
+          tabBarIcon: ({ color }) => (
+            <IconSymbol size={28} name="scalemass.fill" color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
         name="profile"
         options={{
           title: "Profile",
