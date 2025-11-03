@@ -9,6 +9,8 @@ import {
 } from "react-native";
 import { CameraView } from "expo-camera";
 import * as ImagePicker from "expo-image-picker";
+import { LinearGradient } from "expo-linear-gradient";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { VisionService } from "../services/VisionService";
 import { NutritionService } from "../services/NutritionService";
 import { NutritionInfo } from "../types";
@@ -22,6 +24,7 @@ export default function CameraScreen() {
   const [cameraView, setCameraView] = useState<CameraView | null>(null);
   const [nutritionData, setNutritionData] = useState<NutritionInfo[]>([]);
   const [showResults, setShowResults] = useState(false);
+  const [facing, setFacing] = useState<"front" | "back">("back");
 
   const handleImageAnalysis = async (base64: string) => {
     try {
@@ -91,9 +94,11 @@ export default function CameraScreen() {
         quality: 0.7,
       });
 
-      setCapturedPhoto(photo.uri);
-      if (photo?.base64) {
-        await handleImageAnalysis(photo.base64);
+      if (photo && photo.uri) {
+        setCapturedPhoto(photo.uri);
+        if (photo.base64) {
+          await handleImageAnalysis(photo.base64);
+        }
       }
     } catch (error) {
       console.error("Error capturing photo:", error);
@@ -108,6 +113,10 @@ export default function CameraScreen() {
     setShowResults(false);
   }, []);
 
+  const flipCamera = () => {
+    setFacing((current) => (current === "back" ? "front" : "back"));
+  };
+
   return (
     <View style={styles.container}>
       {!capturedPhoto ? (
@@ -115,6 +124,7 @@ export default function CameraScreen() {
           <CameraView
             style={styles.camera}
             ref={(ref) => setCameraView(ref)}
+            facing={facing}
             onMountError={(error) =>
               console.error("Camera mount error:", error)
             }
@@ -123,15 +133,24 @@ export default function CameraScreen() {
               <View style={styles.controlsContainer}>
                 <CameraControls
                   onCapture={capturePhoto}
-                  onFlip={() => {}}
+                  onFlip={flipCamera}
                   loading={loading}
                 />
                 <TouchableOpacity
                   style={styles.uploadButton}
                   onPress={pickImage}
                   disabled={loading}
+                  activeOpacity={0.8}
                 >
-                  <Text style={styles.uploadButtonText}>Upload Image</Text>
+                  <LinearGradient
+                    colors={["#FF6B6B", "#EE5A6F"]}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                    style={styles.uploadButtonGradient}
+                  >
+                    <MaterialCommunityIcons name="image" size={20} color="white" style={styles.uploadIcon} />
+                    <Text style={styles.uploadButtonText}>Upload Image</Text>
+                  </LinearGradient>
                 </TouchableOpacity>
               </View>
             </View>
@@ -177,17 +196,31 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
   },
   uploadButton: {
-    backgroundColor: "#ffffff",
-    padding: 15,
-    borderRadius: 30,
-    marginTop: 10,
+    borderRadius: 16,
+    overflow: "hidden",
+    marginTop: 16,
     width: "80%",
+    shadowColor: "#FF6B6B",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 6,
+  },
+  uploadButtonGradient: {
+    flexDirection: "row",
     alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 16,
+    paddingHorizontal: 24,
+  },
+  uploadIcon: {
+    marginRight: 4,
   },
   uploadButtonText: {
-    color: "#000000",
+    color: "#FFFFFF",
     fontSize: 16,
-    fontWeight: "bold",
+    fontWeight: "700",
+    letterSpacing: 0.5,
   },
   previewContainer: {
     flex: 1,

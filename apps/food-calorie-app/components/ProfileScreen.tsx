@@ -1,32 +1,52 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import {
   View,
   Text,
   StyleSheet,
   ScrollView,
   TouchableOpacity,
+  TextInput,
+  KeyboardAvoidingView,
+  Platform,
+  Alert,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useRouter } from "expo-router";
-import { getUserDetailsByPhone } from "@/services/userService";
+import { useRouter, useFocusEffect } from "expo-router";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { getUserDetailsByPhone, insertUserDetails } from "@/services/userService";
 import { getCurrentUserPhone, clearCurrentUserPhone } from "@/utils/session";
 
 export default function ProfileScreen() {
   const router = useRouter();
   const [userDetails, setUserDetails] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    loadUserDetails();
-  }, []);
+  const [isEditing, setIsEditing] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string>("");
+  
+  // Form state
+  const [age, setAge] = useState("");
+  const [weight, setWeight] = useState("");
+  const [height, setHeight] = useState("");
+  const [gender, setGender] = useState<string>("");
+  
+  const genderOptions = ["male", "female", "other"];
 
   const loadUserDetails = async () => {
     try {
+      setLoading(true);
       const phone = getCurrentUserPhone();
       if (phone) {
         const details = await getUserDetailsByPhone(phone);
-        setUserDetails(details?.data);
+        if (details?.data) {
+          setUserDetails(details.data);
+          // Initialize form fields with existing data
+          setAge(details.data.age || "");
+          setWeight(details.data.weight || "");
+          setHeight(details.data.height || "");
+          setGender(details.data.gender || "");
+        }
       }
     } catch (error) {
       console.error("Error loading user details:", error);
@@ -34,6 +54,63 @@ export default function ProfileScreen() {
       setLoading(false);
     }
   };
+
+  const handleEdit = () => {
+    setIsEditing(true);
+    setError("");
+  };
+
+  const handleCancel = () => {
+    setIsEditing(false);
+    setError("");
+    // Reset form fields to original values
+    if (userDetails) {
+      setAge(userDetails.age || "");
+      setWeight(userDetails.weight || "");
+      setHeight(userDetails.height || "");
+      setGender(userDetails.gender || "");
+    }
+  };
+
+  const handleSave = async () => {
+    try {
+      setSaving(true);
+      setError("");
+      const phone = getCurrentUserPhone();
+      if (!phone) {
+        setError("Please login first");
+        return;
+      }
+
+      const result = await insertUserDetails(phone, age, weight, height, gender);
+      if (result?.error) {
+        setError(result.error.message || "Failed to save details");
+      } else {
+        setIsEditing(false);
+        // Reload user details to show updated values
+        await loadUserDetails();
+        Alert.alert("Success", "Profile updated successfully!");
+      }
+    } catch (err: any) {
+      setError(err.message || "An error occurred");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  useEffect(() => {
+    loadUserDetails();
+  }, []);
+
+  // Refresh data when screen comes into focus (e.g., when returning from user details)
+  useFocusEffect(
+    useCallback(() => {
+      if (!isEditing) {
+        loadUserDetails();
+      }
+    }, [isEditing])
+  );
+
 
   const handleLogout = () => {
     clearCurrentUserPhone();
@@ -50,54 +127,184 @@ export default function ProfileScreen() {
       >
         <View style={styles.header}>
           <Text style={styles.headerTitle}>Profile</Text>
+          {!loading && userDetails && !isEditing && (
+            <TouchableOpacity onPress={handleEdit} style={styles.editButton}>
+              <MaterialCommunityIcons name="pencil" size={24} color="white" />
+            </TouchableOpacity>
+          )}
         </View>
 
-        <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-          {loading ? (
-            <Text style={styles.loadingText}>Loading...</Text>
-          ) : userDetails ? (
-            <View style={styles.card}>
-              <Text style={styles.cardTitle}>Personal Information</Text>
-              <View style={styles.infoRow}>
-                <Text style={styles.infoLabel}>Age:</Text>
-                <Text style={styles.infoValue}>{userDetails.age || "Not set"}</Text>
-              </View>
-              <View style={styles.infoRow}>
-                <Text style={styles.infoLabel}>Weight:</Text>
-                <Text style={styles.infoValue}>{userDetails.weight || "Not set"} kg</Text>
-              </View>
-              <View style={styles.infoRow}>
-                <Text style={styles.infoLabel}>Height:</Text>
-                <Text style={styles.infoValue}>{userDetails.height || "Not set"} cm</Text>
-              </View>
-              <View style={styles.infoRow}>
-                <Text style={styles.infoLabel}>Gender:</Text>
-                <Text style={styles.infoValue}>
-                  {userDetails.gender ? userDetails.gender.charAt(0).toUpperCase() + userDetails.gender.slice(1) : "Not set"}
-                </Text>
-              </View>
-            </View>
-          ) : (
-            <View style={styles.card}>
-              <Text style={styles.noDataText}>No profile information available.</Text>
-              <Text style={styles.hintText}>Complete your profile in User Details.</Text>
-            </View>
-          )}
-
-          <TouchableOpacity
-            style={styles.logoutButton}
-            onPress={handleLogout}
+        <KeyboardAvoidingView
+          style={{ flex: 1 }}
+          behavior={Platform.OS === "ios" ? "padding" : undefined}
+          keyboardVerticalOffset={Platform.OS === "ios" ? 100 : 0}
+        >
+          <ScrollView 
+            style={styles.scrollView} 
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={{ paddingBottom: 20 }}
+            keyboardShouldPersistTaps="handled"
           >
-            <LinearGradient
-              colors={["#FF6B6B", "#EE5A6F"]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={styles.logoutButtonGradient}
-            >
-              <Text style={styles.logoutButtonText}>Logout</Text>
-            </LinearGradient>
-          </TouchableOpacity>
-        </ScrollView>
+            {loading ? (
+              <Text style={styles.loadingText}>Loading...</Text>
+            ) : userDetails || isEditing ? (
+              <View style={styles.card}>
+                <Text style={styles.cardTitle}>Personal Information</Text>
+                
+                {isEditing ? (
+                  <>
+                    {/* Age Input */}
+                    <View style={styles.inputRow}>
+                      <Text style={styles.inputLabel}>Age</Text>
+                      <TextInput
+                        style={styles.input}
+                        placeholder="e.g. 22"
+                        placeholderTextColor="#9CA3AF"
+                        keyboardType="number-pad"
+                        value={age}
+                        onChangeText={setAge}
+                      />
+                    </View>
+
+                    {/* Weight and Height Row */}
+                    <View style={styles.inputRowDouble}>
+                      <View style={[styles.inputHalf, { marginRight: 6 }]}>
+                        <Text style={styles.inputLabel}>Weight (kg)</Text>
+                        <TextInput
+                          style={styles.input}
+                          placeholder="kg"
+                          placeholderTextColor="#9CA3AF"
+                          keyboardType="decimal-pad"
+                          value={weight}
+                          onChangeText={setWeight}
+                        />
+                      </View>
+                      <View style={[styles.inputHalf, { marginLeft: 6 }]}>
+                        <Text style={styles.inputLabel}>Height (cm)</Text>
+                        <TextInput
+                          style={styles.input}
+                          placeholder="cm"
+                          placeholderTextColor="#9CA3AF"
+                          keyboardType="decimal-pad"
+                          value={height}
+                          onChangeText={setHeight}
+                        />
+                      </View>
+                    </View>
+
+                    {/* Gender Selection */}
+                    <View style={styles.inputRow}>
+                      <Text style={styles.inputLabel}>Gender</Text>
+                      <View style={styles.genderRow}>
+                        {genderOptions.map((option) => {
+                          const selected = gender === option;
+                          return (
+                            <TouchableOpacity
+                              key={option}
+                              onPress={() => setGender(option)}
+                              activeOpacity={0.8}
+                              style={[
+                                styles.genderButton,
+                                selected && styles.genderButtonSelected,
+                                { marginRight: option !== genderOptions[genderOptions.length - 1] ? 10 : 0 },
+                              ]}
+                            >
+                              <Text
+                                style={[
+                                  styles.genderButtonText,
+                                  selected && styles.genderButtonTextSelected,
+                                ]}
+                              >
+                                {option.charAt(0).toUpperCase() + option.slice(1)}
+                              </Text>
+                            </TouchableOpacity>
+                          );
+                        })}
+                      </View>
+                    </View>
+
+                    {/* Error Message */}
+                    {error ? (
+                      <View style={styles.errorContainer}>
+                        <Text style={styles.errorText}>{error}</Text>
+                      </View>
+                    ) : null}
+
+                    {/* Save and Cancel Buttons */}
+                    <View style={styles.buttonRow}>
+                      <TouchableOpacity
+                        onPress={handleCancel}
+                        style={[styles.actionButton, styles.cancelButton, { marginRight: 6 }]}
+                        disabled={saving}
+                      >
+                        <Text style={styles.cancelButtonText}>Cancel</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        onPress={handleSave}
+                        style={[styles.actionButton, styles.saveButton, { marginLeft: 6 }]}
+                        disabled={saving}
+                      >
+                        <LinearGradient
+                          colors={["#22C55E", "#16A34A"]}
+                          start={{ x: 0, y: 0 }}
+                          end={{ x: 1, y: 1 }}
+                          style={styles.saveButtonGradient}
+                        >
+                          <Text style={styles.saveButtonText}>
+                            {saving ? "Saving..." : "Save"}
+                          </Text>
+                        </LinearGradient>
+                      </TouchableOpacity>
+                    </View>
+                  </>
+                ) : (
+                  <>
+                    {/* View Mode */}
+                    <View style={styles.infoRow}>
+                      <Text style={styles.infoLabel}>Age:</Text>
+                      <Text style={styles.infoValue}>{userDetails?.age || "Not set"}</Text>
+                    </View>
+                    <View style={styles.infoRow}>
+                      <Text style={styles.infoLabel}>Weight:</Text>
+                      <Text style={styles.infoValue}>{userDetails?.weight || "Not set"} kg</Text>
+                    </View>
+                    <View style={styles.infoRow}>
+                      <Text style={styles.infoLabel}>Height:</Text>
+                      <Text style={styles.infoValue}>{userDetails?.height || "Not set"} cm</Text>
+                    </View>
+                    <View style={styles.infoRow}>
+                      <Text style={styles.infoLabel}>Gender:</Text>
+                      <Text style={styles.infoValue}>
+                        {userDetails?.gender ? userDetails.gender.charAt(0).toUpperCase() + userDetails.gender.slice(1) : "Not set"}
+                      </Text>
+                    </View>
+                  </>
+                )}
+              </View>
+            ) : (
+              <View style={styles.card}>
+                <Text style={styles.noDataText}>No profile information available.</Text>
+                <Text style={styles.hintText}>Complete your profile in User Details.</Text>
+              </View>
+            )}
+
+            {!isEditing && (
+              <TouchableOpacity
+                style={styles.logoutButton}
+                onPress={handleLogout}
+              >
+                <LinearGradient
+                  colors={["#FF6B6B", "#EE5A6F"]}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                  style={styles.logoutButtonGradient}
+                >
+                  <Text style={styles.logoutButtonText}>Logout</Text>
+                </LinearGradient>
+              </TouchableOpacity>
+            )}
+          </ScrollView>
+        </KeyboardAvoidingView>
       </LinearGradient>
     </SafeAreaView>
   );
@@ -117,11 +324,18 @@ const styles = StyleSheet.create({
     borderBottomLeftRadius: 20,
     borderBottomRightRadius: 20,
     marginBottom: 10,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
   headerTitle: {
     fontSize: 32,
     fontWeight: "bold",
     color: "white",
+  },
+  editButton: {
+    padding: 8,
+    borderRadius: 8,
   },
   scrollView: {
     flex: 1,
@@ -195,6 +409,104 @@ const styles = StyleSheet.create({
     color: "#ffffff",
     fontSize: 18,
     fontWeight: "800",
+  },
+  inputRow: {
+    marginBottom: 16,
+  },
+  inputRowDouble: {
+    flexDirection: "row",
+    marginBottom: 16,
+  },
+  inputHalf: {
+    flex: 1,
+  },
+  inputLabel: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#666",
+    marginBottom: 8,
+  },
+  input: {
+    backgroundColor: "#F3F4F6",
+    borderColor: "#D1D5DB",
+    borderWidth: 1,
+    borderRadius: 12,
+    color: "#1e1e1e",
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    fontSize: 16,
+  },
+  genderRow: {
+    flexDirection: "row",
+    marginTop: 8,
+  },
+  genderButton: {
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: 12,
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#D1D5DB",
+    backgroundColor: "#F9FAFB",
+  },
+  genderButtonSelected: {
+    backgroundColor: "#22C55E",
+    borderColor: "#22C55E",
+  },
+  genderButtonText: {
+    color: "#666",
+    fontWeight: "600",
+    fontSize: 14,
+  },
+  genderButtonTextSelected: {
+    color: "#FFFFFF",
+    fontWeight: "700",
+  },
+  errorContainer: {
+    backgroundColor: "#FEE2E2",
+    borderColor: "#EF4444",
+    borderWidth: 1,
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 16,
+  },
+  errorText: {
+    color: "#DC2626",
+    fontSize: 14,
+    textAlign: "center",
+  },
+  buttonRow: {
+    flexDirection: "row",
+    marginTop: 8,
+  },
+  actionButton: {
+    flex: 1,
+    borderRadius: 12,
+    overflow: "hidden",
+  },
+  cancelButton: {
+    backgroundColor: "#F3F4F6",
+    borderWidth: 1,
+    borderColor: "#D1D5DB",
+  },
+  cancelButtonText: {
+    color: "#666",
+    fontSize: 16,
+    fontWeight: "600",
+    textAlign: "center",
+    paddingVertical: 14,
+  },
+  saveButton: {
+    overflow: "hidden",
+  },
+  saveButtonGradient: {
+    paddingVertical: 14,
+    alignItems: "center",
+  },
+  saveButtonText: {
+    color: "#ffffff",
+    fontSize: 16,
+    fontWeight: "700",
   },
 });
 

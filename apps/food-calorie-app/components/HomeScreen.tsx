@@ -16,11 +16,13 @@ import {
   fetchFoodByUserIdForToday,
   getMealTypeByMealIdForToday,
 } from "@/services/NutritionService";
+import { getUserNameByPhone } from "@/services/userService";
 import { getCurrentUserPhone } from "@/utils/session";
 import { GroupedMeal, Meal, NutrientItem, NutrientTotals } from "@/types";
 
 export default function HomeScreen() {
   const [foodData, setFoodData] = useState<Meal[]>([]);
+  const [userName, setUserName] = useState<string>("");
   const fadeAnim = React.useRef(new Animated.Value(0)).current;
   const scaleAnim = React.useRef(new Animated.Value(0.95)).current;
   const rotateAnim = React.useRef(new Animated.Value(0)).current;
@@ -192,16 +194,32 @@ export default function HomeScreen() {
     }
   }, []);
 
+  const fetchUserName = useCallback(async () => {
+    try {
+      const phone = getCurrentUserPhone();
+      if (phone) {
+        const result = await getUserNameByPhone(phone);
+        if (result?.data) {
+          setUserName(result.data);
+        }
+      }
+    } catch (error) {
+      console.error("Error fetching user name:", error);
+    }
+  }, []);
+
   // Fetch data on initial load
   useEffect(() => {
     fetchFoodData();
-  }, [fetchFoodData]);
+    fetchUserName();
+  }, [fetchFoodData, fetchUserName]);
 
   // Refresh data when screen comes into focus (e.g., returning from camera)
   useFocusEffect(
     useCallback(() => {
       fetchFoodData();
-    }, [fetchFoodData])
+      fetchUserName();
+    }, [fetchFoodData, fetchUserName])
   );
 
   console.log("foodData", JSON.stringify(foodData));
@@ -291,6 +309,11 @@ export default function HomeScreen() {
             <Animated.Text style={[styles.greeting, { opacity: fadeAnim }]}>
               Good {getTimeOfDay()}!
             </Animated.Text>
+            {userName && (
+              <Animated.Text style={[styles.userName, { opacity: fadeAnim }]}>
+                {userName}
+              </Animated.Text>
+            )}
             <Animated.Text style={[styles.date, { opacity: fadeAnim }]}>
               {new Date().toLocaleDateString("en-US", {
                 weekday: "long",
@@ -417,6 +440,13 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     color: "white",
     marginBottom: 5,
+  },
+  userName: {
+    fontSize: 24,
+    color: "rgba(255, 255, 255, 0.9)",
+    fontWeight: "600",
+    marginTop: 0,
+    marginBottom: 4,
   },
   date: {
     fontSize: 16,

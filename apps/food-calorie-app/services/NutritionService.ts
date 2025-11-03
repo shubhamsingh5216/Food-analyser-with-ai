@@ -7,6 +7,58 @@ import { getUserIdByPhone } from "./userService";
 export class NutritionService {
   static async fetchNutritionInfo(foodItem: string): Promise<NutritionInfo | null> {
     try {
+      // EDAMAM API Implementation
+      const EDAMAM_APP_ID = CONFIG.NUTRITION_API.APP_ID;
+      const EDAMAM_APP_KEY = CONFIG.NUTRITION_API.APP_KEY;
+      const EDAMAM_API_URL = "https://api.edamam.com/api/food-database/v2/parser";
+
+      const response = await axios.get(EDAMAM_API_URL, {
+        params: {
+          ingr: foodItem,
+          app_id: EDAMAM_APP_ID,
+          app_key: EDAMAM_APP_KEY,
+        },
+      });
+
+      return this.parseEdamamResponse(response.data, foodItem);
+    } catch (error) {
+      console.error("Error fetching nutrition info from EDAMAM:", error);
+      return null;
+    }
+  }
+
+  private static parseEdamamResponse(data: any, originalFoodItem: string): NutritionInfo | null {
+    if (data?.hints?.[0]?.food) {
+      const food = data.hints[0].food;
+      const nutrients = food.nutrients || {};
+      
+      // EDAMAM returns nutrients per 100g
+      return {
+        foodItem: food.label || originalFoodItem,
+        calories: nutrients.ENERC_KCAL || 0,
+        totalFat: nutrients.FAT || 0,
+        saturatedFat: nutrients.FASAT || 0,
+        cholesterol: nutrients.CHOLE || 0,
+        sodium: (nutrients.NA || 0) * 1000, // Convert from g to mg
+        totalCarbohydrate: nutrients.CHOCDF || 0,
+        dietaryFiber: nutrients.FIBTG || 0,
+        sugars: nutrients.SUGAR || 0,
+        protein: nutrients.PROCNT || 0,
+        potassium: (nutrients.K || 0) * 1000, // Convert from g to mg
+        phosphorus: nutrients.P || 0,
+        servingQty: 1,
+        servingUnit: "g",
+        servingWeightGrams: 100, // EDAMAM provides per 100g
+        confidence: data.hints[0].measures?.[0]?.weight ? 1.0 : 0.8,
+      };
+    }
+    return null;
+  }
+
+  // Commented out USDA API implementation
+  /*
+  static async fetchNutritionInfo(foodItem: string): Promise<NutritionInfo | null> {
+    try {
       const response = await axios.post(
         `https://api.nal.usda.gov/fdc/v1/foods/search?api_key=${CONFIG.NUTRITION_API.API_KEY}`,
         {
@@ -15,7 +67,7 @@ export class NutritionService {
         },
         { headers: { "Content-Type": "application/json" } }
       );
-      return this.parseResponse(response.data);
+      return this.parseUSDAResponse(response.data);
     } catch (error) {
       console.error("Error fetching nutrition info:", error);
       return null;
@@ -27,7 +79,7 @@ export class NutritionService {
     return foodItem;
   }
 
-  private static parseResponse(data: any): NutritionInfo | null {
+  private static parseUSDAResponse(data: any): NutritionInfo | null {
     if (data?.foods?.[0]) {
       const food = data.foods[0];
       // Nutrient number mapping from USDA:
@@ -58,6 +110,7 @@ export class NutritionService {
     }
     return null;
   }
+  */
 }
 
 export const addFoodIntoFoods = async (

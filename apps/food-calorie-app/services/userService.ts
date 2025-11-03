@@ -94,20 +94,56 @@ export const insertUserDetails = async (
   height: string,
   gender: string
 ) => {
-  const userId = await getUserIdByPhone(phone);
-  console.log("userId", userId);
-  const { data, error } = await supabase
-    .from("user_details")
-    .select("id")
-    .eq("user_id", userId.data?.id)
-    .single();
+  try {
+    const userId = await getUserIdByPhone(phone);
+    console.log("userId", userId);
+    
+    if (!userId.data?.id) {
+      console.error("No user ID found for phone:", phone);
+      return { data: null, error: { message: "User not found" } };
+    }
 
-  if (error) {
-    const { data } = await supabase
+    // Check if user_details already exists
+    const { data: existingData, error: checkError } = await supabase
       .from("user_details")
-      .upsert({ user_id: userId.data?.id, age, weight, height, gender });
+      .select("id")
+      .eq("user_id", userId.data.id)
+      .single();
 
-    return { data };
+    if (existingData && !checkError) {
+      // Update existing record
+      const { data, error } = await supabase
+        .from("user_details")
+        .update({ age, weight, height, gender })
+        .eq("user_id", userId.data.id)
+        .select()
+        .single();
+
+      if (error) {
+        console.error("Error updating user details:", error);
+        return { data: null, error };
+      }
+      return { data, error: null };
+    } else {
+      // Insert new record
+      const { data, error } = await supabase
+        .from("user_details")
+        .insert({ user_id: userId.data.id, age, weight, height, gender })
+        .select()
+        .single();
+
+      if (error) {
+        console.error("Error inserting user details:", error);
+        return { data: null, error };
+      }
+      return { data, error: null };
+    }
+  } catch (err: any) {
+    console.error("Unexpected error in insertUserDetails:", err);
+    return { 
+      data: null, 
+      error: { message: err.message || "Failed to save user details" } 
+    };
   }
 };
 
@@ -120,4 +156,27 @@ export const getUserDetailsByPhone = async (phone: string) => {
     .single();
 
   return { data };
+};
+
+export const getUserNameByPhone = async (phone: string) => {
+  try {
+    const { data, error } = await supabase
+      .from("users")
+      .select("name")
+      .eq("phone", phone)
+      .single();
+
+    if (error) {
+      console.error("Error getting user name:", error);
+      return { data: null, error };
+    }
+
+    return { data: data?.name || null, error: null };
+  } catch (err: any) {
+    console.error("Unexpected error in getUserNameByPhone:", err);
+    return { 
+      data: null, 
+      error: { message: err.message || "Failed to get user name" } 
+    };
+  }
 };

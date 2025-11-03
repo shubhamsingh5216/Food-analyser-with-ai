@@ -24,11 +24,29 @@ export default function UserDetails() {
   const [weight, setWeight] = useState("");
   const [height, setHeight] = useState("");
   const [gender, setGender] = useState<string>("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string>("");
 
   const handleContinue = async () => {
-    const phone = getCurrentUserPhone() || "1234567890"; // Fallback if not logged in
-    await insertUserDetails(phone, age, weight, height, gender);
-    router.push("/(tabs)");
+    try {
+      setLoading(true);
+      setError("");
+      const phone = getCurrentUserPhone();
+      if (!phone) {
+        setError("Please login first");
+        return;
+      }
+      const result = await insertUserDetails(phone, age, weight, height, gender);
+      if (result?.error) {
+        setError(result.error.message || "Failed to save details");
+      } else {
+        router.push("/(tabs)");
+      }
+    } catch (err: any) {
+      setError(err.message || "An error occurred");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const genderOptions = ["male", "female", "other"];
@@ -119,15 +137,29 @@ export default function UserDetails() {
               </View>
             </View>
 
+            {/* Error message */}
+            {error ? (
+              <View style={styles.errorContainer}>
+                <Text style={styles.errorText}>{error}</Text>
+              </View>
+            ) : null}
+
             {/* Continue */}
-            <TouchableOpacity onPress={handleContinue} activeOpacity={0.92} style={{ borderRadius: 12, overflow: "hidden", marginTop: 8 }}>
+            <TouchableOpacity 
+              onPress={handleContinue} 
+              activeOpacity={0.92} 
+              disabled={loading}
+              style={{ borderRadius: 12, overflow: "hidden", marginTop: 8, opacity: loading ? 0.6 : 1 }}
+            >
               <LinearGradient
                 colors={["#22C55E", "#16A34A"]}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
                 style={styles.primaryCta}
               >
-                <Text style={styles.primaryCtaText}>Continue</Text>
+                <Text style={styles.primaryCtaText}>
+                  {loading ? "Saving..." : "Continue"}
+                </Text>
               </LinearGradient>
             </TouchableOpacity>
           </View>
@@ -230,5 +262,18 @@ const styles = StyleSheet.create({
     fontSize: 12,
     textAlign: "center",
     marginTop: 16,
+  },
+  errorContainer: {
+    backgroundColor: "#FEE2E2",
+    borderColor: "#EF4444",
+    borderWidth: 1,
+    borderRadius: 8,
+    padding: 12,
+    marginTop: 8,
+  },
+  errorText: {
+    color: "#DC2626",
+    fontSize: 14,
+    textAlign: "center",
   },
 });

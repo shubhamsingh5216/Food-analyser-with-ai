@@ -19,7 +19,12 @@ export const GENERIC_FOOD_TERMS = new Set([
 
 export const CONFIG = {
   NUTRITION_API: {
-    API_KEY: "eZz1JUNA0og5955yz0tdT0MygdwyIxPCTtv7Eo2V", // USDA API Key
+    //API_KEY: "eZz1JUNA0og5955yz0tdT0MygdwyIxPCTtv7Eo2V", // USDA API Key
+    // EDAMAM API Credentials
+    APP_ID: "7a57e5ee", // Replace with your EDAMAM App ID
+    APP_KEY: "bdc2c7eebbc0909bdc9f8decc279f597", // Replace with your EDAMAM App Key
+    // USDA API Key (commented out - using EDAMAM now)
+    // API_KEY: "eZz1JUNA0og5955yz0tdT0MygdwyIxPCTtv7Eo2V",
   },
   VISION_API: {
     KEY: "AIzaSyBc2TnOZrQ3PWe-7Q2swQgMSvm8ADFZC9I",
