@@ -15,25 +15,75 @@ import { useRouter } from "expo-router";
 import {
   getUserDetailsByPhone,
   insertUserDetails,
+  insertUser,
 } from "@/services/userService";
-import { getCurrentUserPhone } from "@/utils/session";
+import { setCurrentUserPhone } from "@/utils/session";
 import { useTheme } from "@/contexts/ThemeContext";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function UserDetails() {
   const router = useRouter();
   const { currentTheme } = useTheme();
+  const { t } = useLanguage();
   const isDark = currentTheme === 'dark';
-  const bgColor = isDark ? "#0B1220" : "#FFFFFF";
-  const cardBgColor = isDark ? "#0F172A" : "#F8F9FA";
-  const cardBorderColor = isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.1)";
-  const labelColor = isDark ? "#C7D2FE" : "#1e1e1e";
-  const inputBgColor = isDark ? "#0B1220" : "#FFFFFF";
-  const inputBorderColor = isDark ? "#1F2937" : "#D1D5DB";
-  const inputTextColor = isDark ? "#FFFFFF" : "#1e1e1e";
-  const segmentBgColor = isDark ? "#0B1220" : "#FFFFFF";
-  const segmentBorderColor = isDark ? "#374151" : "#D1D5DB";
-  const segmentTextColor = isDark ? "#E5E7EB" : "#1e1e1e";
-  const footerTextColor = isDark ? "#9CA3AF" : "#666666";
+  const isReading = currentTheme === 'reading';
+  const bgColor = isDark 
+    ? "#0B1220" 
+    : isReading 
+    ? "#FAF8F3"
+    : "#FFFFFF";
+  const cardBgColor = isDark 
+    ? "#0F172A" 
+    : isReading 
+    ? "#F7F3E9"
+    : "#F8F9FA";
+  const cardBorderColor = isDark 
+    ? "rgba(255,255,255,0.08)" 
+    : isReading 
+    ? "rgba(139,115,85,0.2)"
+    : "rgba(0,0,0,0.1)";
+  const labelColor = isDark 
+    ? "#C7D2FE" 
+    : isReading 
+    ? "#5D4037"
+    : "#1e1e1e";
+  const inputBgColor = isDark 
+    ? "#0B1220" 
+    : isReading 
+    ? "#FFF8DC"
+    : "#FFFFFF";
+  const inputBorderColor = isDark 
+    ? "#1F2937" 
+    : isReading 
+    ? "#D7CCC8"
+    : "#D1D5DB";
+  const inputTextColor = isDark 
+    ? "#FFFFFF" 
+    : isReading 
+    ? "#5D4037"
+    : "#1e1e1e";
+  const segmentBgColor = isDark 
+    ? "#0B1220" 
+    : isReading 
+    ? "#FFF8DC"
+    : "#FFFFFF";
+  const segmentBorderColor = isDark 
+    ? "#374151" 
+    : isReading 
+    ? "#D7CCC8"
+    : "#D1D5DB";
+  const segmentTextColor = isDark 
+    ? "#E5E7EB" 
+    : isReading 
+    ? "#5D4037"
+    : "#1e1e1e";
+  const footerTextColor = isDark 
+    ? "#9CA3AF" 
+    : isReading 
+    ? "#8D6E63"
+    : "#666666";
+  const [phone, setPhone] = useState("");
+  const [name, setName] = useState("");
   const [age, setAge] = useState("");
   const [weight, setWeight] = useState("");
   const [height, setHeight] = useState("");
@@ -42,20 +92,35 @@ export default function UserDetails() {
   const [error, setError] = useState<string>("");
 
   const handleContinue = async () => {
+    // Validate all fields
+    if (!phone || !name || !age || !weight || !height || !gender) {
+      setError("Please fill in all fields");
+      return;
+    }
+
     try {
       setLoading(true);
       setError("");
-      const phone = getCurrentUserPhone();
-      if (!phone) {
-        setError("Please login first");
+      
+      // First, create the user account
+      const userResult = await insertUser(phone, name);
+      if (userResult?.error) {
+        setError(userResult.error.message || "Failed to create account");
         return;
       }
-      const result = await insertUserDetails(phone, age, weight, height, gender);
-      if (result?.error) {
-        setError(result.error.message || "Failed to save details");
-      } else {
-        router.push("/(tabs)");
+
+      // Then, save user details
+      const detailsResult = await insertUserDetails(phone, age, weight, height, gender);
+      if (detailsResult?.error) {
+        setError(detailsResult.error.message || "Failed to save details");
+        return;
       }
+
+      // Set session to log the user in automatically
+      setCurrentUserPhone(phone);
+
+      // After successful sign-up, redirect directly to home screen
+      router.push("/(tabs)");
     } catch (err: any) {
       setError(err.message || "An error occurred");
     } finally {
@@ -74,9 +139,9 @@ export default function UserDetails() {
         end={{ x: 1, y: 1 }}
         style={styles.header}
       >
-        <Text style={styles.headerTitle}>Tell us about you</Text>
+        <Text style={styles.headerTitle}>Sign Up</Text>
         <Text style={styles.headerSubtitle}>
-          We will personalize your daily targets and insights.
+          Create your account to get started
         </Text>
       </LinearGradient>
 
@@ -88,12 +153,37 @@ export default function UserDetails() {
       >
         <ScrollView contentContainerStyle={styles.content} bounces={false}>
           <View style={[styles.card, { backgroundColor: cardBgColor, borderColor: cardBorderColor }]}>
-            {/* Age */}
+            {/* Phone */}
             <View style={styles.fieldBlock}>
-              <Text style={[styles.label, { color: labelColor }]}>Age</Text>
+              <Text style={[styles.label, { color: labelColor }]}>Phone Number</Text>
               <TextInput
                 style={[styles.input, { backgroundColor: inputBgColor, borderColor: inputBorderColor, color: inputTextColor }]}
-                placeholder="e.g. 22"
+                placeholder="Enter your phone number"
+                placeholderTextColor="#9CA3AF"
+                keyboardType="phone-pad"
+                value={phone}
+                onChangeText={setPhone}
+              />
+            </View>
+
+            {/* Name */}
+            <View style={styles.fieldBlock}>
+              <Text style={[styles.label, { color: labelColor }]}>Full Name</Text>
+              <TextInput
+                style={[styles.input, { backgroundColor: inputBgColor, borderColor: inputBorderColor, color: inputTextColor }]}
+                placeholder="Enter your full name"
+                placeholderTextColor="#9CA3AF"
+                value={name}
+                onChangeText={setName}
+              />
+            </View>
+
+            {/* Age */}
+            <View style={styles.fieldBlock}>
+              <Text style={[styles.label, { color: labelColor }]}>{t('userDetails.age')}</Text>
+              <TextInput
+                style={[styles.input, { backgroundColor: inputBgColor, borderColor: inputBorderColor, color: inputTextColor }]}
+                placeholder={t('userDetails.agePlaceholder')}
                 placeholderTextColor="#9CA3AF"
                 keyboardType="number-pad"
                 value={age}
@@ -103,10 +193,10 @@ export default function UserDetails() {
             {/* Weight */}
             <View style={styles.fieldRow}>
               <View style={{ flex: 1, marginRight: 8 }}>
-                <Text style={[styles.label, { color: labelColor }]}>Weight</Text>
+                <Text style={[styles.label, { color: labelColor }]}>{t('userDetails.weight')}</Text>
                 <TextInput
                   style={[styles.input, { backgroundColor: inputBgColor, borderColor: inputBorderColor, color: inputTextColor }]}
-                  placeholder="kg"
+                  placeholder={t('userDetails.weightPlaceholder')}
                   placeholderTextColor="#9CA3AF"
                   keyboardType="decimal-pad"
                   value={weight}
@@ -114,10 +204,10 @@ export default function UserDetails() {
                 />
               </View>
               <View style={{ flex: 1, marginLeft: 8 }}>
-                <Text style={[styles.label, { color: labelColor }]}>Height</Text>
+                <Text style={[styles.label, { color: labelColor }]}>{t('userDetails.height')}</Text>
                 <TextInput
                   style={[styles.input, { backgroundColor: inputBgColor, borderColor: inputBorderColor, color: inputTextColor }]}
-                  placeholder="cm"
+                  placeholder={t('userDetails.heightPlaceholder')}
                   placeholderTextColor="#9CA3AF"
                   keyboardType="decimal-pad"
                   value={height}
@@ -128,7 +218,7 @@ export default function UserDetails() {
 
             {/* Gender */}
             <View style={styles.fieldBlock}>
-              <Text style={[styles.label, { color: labelColor }]}>Gender</Text>
+              <Text style={[styles.label, { color: labelColor }]}>{t('userDetails.gender')}</Text>
               <View style={styles.segmentRow}>
                 {genderOptions.map((option) => {
                   const selected = gender === option;
@@ -143,7 +233,7 @@ export default function UserDetails() {
                       ]}
                     >
                       <Text style={[styles.segmentText, { color: selected ? "#0B1220" : segmentTextColor }, selected && { fontWeight: "800" }]}>
-                        {option.charAt(0).toUpperCase() + option.slice(1)}
+                        {t(`userDetails.genderOptions.${option}`)}
                       </Text>
                     </TouchableOpacity>
                   );
@@ -162,8 +252,8 @@ export default function UserDetails() {
             <TouchableOpacity 
               onPress={handleContinue} 
               activeOpacity={0.92} 
-              disabled={loading}
-              style={{ borderRadius: 12, overflow: "hidden", marginTop: 8, opacity: loading ? 0.6 : 1 }}
+              disabled={loading || !phone || !name || !age || !weight || !height || !gender}
+              style={{ borderRadius: 12, overflow: "hidden", marginTop: 8, opacity: (loading || !phone || !name || !age || !weight || !height || !gender) ? 0.6 : 1 }}
             >
               <LinearGradient
                 colors={["#22C55E", "#16A34A"]}
@@ -172,15 +262,23 @@ export default function UserDetails() {
                 style={styles.primaryCta}
               >
                 <Text style={styles.primaryCtaText}>
-                  {loading ? "Saving..." : "Continue"}
+                  {loading ? "Creating Account..." : "Sign Up"}
                 </Text>
               </LinearGradient>
             </TouchableOpacity>
           </View>
 
-          <Text style={[styles.footerNote, { color: footerTextColor }]}>
-            Your data is stored securely. You can edit details later in Profile.
-          </Text>
+          <View style={styles.loginPromptContainer}>
+            <Text style={[styles.loginPromptText, { color: footerTextColor }]}>
+              Already have an account?{" "}
+              <Text
+                style={[styles.loginLink, { color: isDark ? "#10B981" : isReading ? "#8B7355" : "#22C55E" }]}
+                onPress={() => router.push("/(auth)/login")}
+              >
+                Login
+              </Text>
+            </Text>
+          </View>
         </ScrollView>
       </KeyboardAvoidingView>
     </View>
@@ -276,6 +374,18 @@ const styles = StyleSheet.create({
     fontSize: 12,
     textAlign: "center",
     marginTop: 16,
+  },
+  loginPromptContainer: {
+    marginTop: 24,
+    alignItems: "center",
+  },
+  loginPromptText: {
+    fontSize: 14,
+    textAlign: "center",
+  },
+  loginLink: {
+    fontWeight: "700",
+    textDecorationLine: "underline",
   },
   errorContainer: {
     backgroundColor: "#FEE2E2",

@@ -15,6 +15,7 @@ import { Dropdown } from "./DropDown";
 import { addFoodIntoFoods } from "@/services/NutritionService";
 import { getCurrentUserPhone } from "@/utils/session";
 import { useTheme } from "@/contexts/ThemeContext";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface NutritionResultsProps {
   nutritionData: NutritionInfo[];
@@ -29,7 +30,9 @@ export const NutritionResults: React.FC<NutritionResultsProps> = ({
 }) => {
   const router = useRouter();
   const { currentTheme } = useTheme();
+  const { t } = useLanguage();
   const isDark = currentTheme === 'dark';
+  const isReading = currentTheme === 'reading';
   const [selectedQuantities, setSelectedQuantities] = useState<number[]>(
     new Array(nutritionData.length).fill(100)
   );
@@ -41,13 +44,41 @@ export const NutritionResults: React.FC<NutritionResultsProps> = ({
   );
 
   // Theme colors
-  const modalOverlayColor = isDark ? "rgba(0, 0, 0, 0.5)" : "rgba(0, 0, 0, 0.3)";
-  const modalBgColor = isDark ? "#1a1a1a" : "#FFFFFF";
-  const cardBgColor = isDark ? "#2a2a2a" : "#F8F9FA";
-  const textColor = isDark ? "#fff" : "#1e1e1e";
-  const closeTextColor = isDark ? "#fff" : "#1e1e1e";
-  const nutrientTextColor = isDark ? "#fff" : "#1e1e1e";
-  const disabledButtonColor = isDark ? "#4a4a4a" : "#D1D5DB";
+  const modalOverlayColor = isDark 
+    ? "rgba(0, 0, 0, 0.5)" 
+    : isReading 
+    ? "rgba(139, 115, 85, 0.2)"
+    : "rgba(0, 0, 0, 0.3)";
+  const modalBgColor = isDark 
+    ? "#1a1a1a" 
+    : isReading 
+    ? "#F7F3E9"
+    : "#FFFFFF";
+  const cardBgColor = isDark 
+    ? "#2a2a2a" 
+    : isReading 
+    ? "#FFF8DC"
+    : "#F8F9FA";
+  const textColor = isDark 
+    ? "#fff" 
+    : isReading 
+    ? "#5D4037"
+    : "#1e1e1e";
+  const closeTextColor = isDark 
+    ? "#fff" 
+    : isReading 
+    ? "#5D4037"
+    : "#1e1e1e";
+  const nutrientTextColor = isDark 
+    ? "#fff" 
+    : isReading 
+    ? "#5D4037"
+    : "#1e1e1e";
+  const disabledButtonColor = isDark 
+    ? "#4a4a4a" 
+    : isReading 
+    ? "#D7CCC8"
+    : "#D1D5DB";
 
   console.log("isButtonDisabled", JSON.stringify(isButtonDisabled));
 
@@ -170,7 +201,7 @@ export const NutritionResults: React.FC<NutritionResultsProps> = ({
             text: "OK",
             onPress: () => {
               onRetake(); // Close modal and reset camera
-              router.push("/(tabs)/"); // Navigate to home tab to see updated values
+              router.push("/(tabs)" as any); // Navigate to home tab to see updated values
             },
           },
         ]);
@@ -191,7 +222,7 @@ export const NutritionResults: React.FC<NutritionResultsProps> = ({
       <View style={[styles.modalContainer, { backgroundColor: modalOverlayColor }]}>
         <View style={[styles.modalContent, { backgroundColor: modalBgColor }]}>
           <View style={styles.headerContainer}>
-            <Text style={[styles.title, { color: textColor }]}>Food Analysis</Text>
+            <Text style={[styles.title, { color: textColor }]}>{t('nutrition.title')}</Text>
             <TouchableOpacity style={styles.closeButton} onPress={onRetake}>
               <Text style={[styles.closeText, { color: closeTextColor }]}>✕</Text>
             </TouchableOpacity>
@@ -215,13 +246,13 @@ export const NutritionResults: React.FC<NutritionResultsProps> = ({
 
                   <View style={styles.nutrientDetails}>
                     <Text style={[styles.nutrientText, { color: nutrientTextColor }]}>
-                      Protein: {nutrients.protein} g
+                      {t('nutrition.protein')}: {nutrients.protein} {t('home.g')}
                     </Text>
                     <Text style={[styles.nutrientText, { color: nutrientTextColor }]}>
-                      Carbs: {nutrients.totalCarbohydrate} g
+                      {t('nutrition.carbs')}: {nutrients.totalCarbohydrate} {t('home.g')}
                     </Text>
                     <Text style={[styles.nutrientText, { color: nutrientTextColor }]}>
-                      Fats: {nutrients.totalFat} g
+                      {t('nutrition.fats')}: {nutrients.totalFat} {t('home.g')}
                     </Text>
                     <Text style={[styles.nutrientText, { color: nutrientTextColor }]}>
                       Fiber: {nutrients.dietaryFiber} g
@@ -241,14 +272,14 @@ export const NutritionResults: React.FC<NutritionResultsProps> = ({
                         handleQuantityChange(index, value)
                       }
                       keyboardType="numeric"
-                      label="Quantity (g)"
+                      label={`${t('nutrition.quantity')} (${t('home.g')})`}
                       isDisabled={isButtonDisabled[index]}
                     />
                     <Dropdown
                       options={[
-                        { label: "Breakfast", value: "Breakfast" },
-                        { label: "Lunch", value: "Lunch" },
-                        { label: "Dinner", value: "Dinner" },
+                        { label: t('home.breakfast'), value: "Breakfast" },
+                        { label: t('home.lunch'), value: "Lunch" },
+                        { label: t('home.dinner'), value: "Dinner" },
                       ]}
                       selectedValue={selectedMeals[index]}
                       onValueChange={(value) =>
@@ -272,14 +303,14 @@ export const NutritionResults: React.FC<NutritionResultsProps> = ({
                     }
                     disabled={isButtonDisabled[index]}
                   >
-                    <Text style={styles.addButtonText}>Add Dish</Text>
+                    <Text style={styles.addButtonText}>{t('nutrition.addToMeals')}</Text>
                   </TouchableOpacity>
                 </View>
               );
             })}
 
             <TouchableOpacity style={styles.retakeButton} onPress={onRetake}>
-              <Text style={styles.retakeText}>Take Another Photo</Text>
+              <Text style={styles.retakeText}>{t('nutrition.retake')}</Text>
             </TouchableOpacity>
           </ScrollView>
         </View>
