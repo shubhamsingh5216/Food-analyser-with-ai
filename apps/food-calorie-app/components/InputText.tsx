@@ -23,34 +23,13 @@ export const InputText: React.FC<InputTextProps> = ({
 }) => {
   const { currentTheme } = useTheme();
   const isDark = currentTheme === 'dark';
-  const isReading = currentTheme === 'reading';
   const displayValue = value?.toString() || "";
   
-  const labelColor = isDark 
-    ? "#fff" 
-    : isReading 
-    ? "#5D4037"
-    : "#1e1e1e";
-  const inputBgColor = isDark 
-    ? "#2a2a2a" 
-    : isReading 
-    ? "#FFF8DC"
-    : "#FFFFFF";
-  const inputBorderColor = isDark 
-    ? "#ccc" 
-    : isReading 
-    ? "#D7CCC8"
-    : "#D1D5DB";
-  const inputTextColor = isDark 
-    ? "#fff" 
-    : isReading 
-    ? "#5D4037"
-    : "#1e1e1e";
-  const placeholderColor = isDark 
-    ? "#aaa" 
-    : isReading 
-    ? "#A1887F"
-    : "#9CA3AF";
+  const labelColor = isDark ? "#fff" : "#1e1e1e";
+  const inputBgColor = isDark ? "#2a2a2a" : "#FFFFFF";
+  const inputBorderColor = isDark ? "#ccc" : "#D1D5DB";
+  const inputTextColor = isDark ? "#fff" : "#1e1e1e";
+  const placeholderColor = isDark ? "#aaa" : "#9CA3AF";
   
   return (
     <View style={[styles.inputContainer, style]}>

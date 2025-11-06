@@ -18,19 +18,16 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { getUserDetailsByPhone, insertUserDetails } from "@/services/userService";
 import { getCurrentUserPhone, clearCurrentUserPhone } from "@/utils/session";
 import { useTheme } from "@/contexts/ThemeContext";
-import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function ProfileScreen() {
   const router = useRouter();
   const { themeMode, currentTheme, setThemeMode } = useTheme();
-  const { language, setLanguage, t } = useLanguage();
   const [userDetails, setUserDetails] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string>("");
   const [showThemeModal, setShowThemeModal] = useState(false);
-  const [showLanguageModal, setShowLanguageModal] = useState(false);
   
   // Form state
   const [age, setAge] = useState("");
@@ -40,14 +37,9 @@ export default function ProfileScreen() {
   
   const genderOptions = ["male", "female", "other"];
   
-  const handleThemeChange = async (mode: 'light' | 'dark' | 'auto' | 'reading') => {
+  const handleThemeChange = async (mode: 'light' | 'dark' | 'auto') => {
     await setThemeMode(mode);
     setShowThemeModal(false);
-  };
-
-  const handleLanguageChange = async (lang: 'en' | 'hi' | 'kn') => {
-    await setLanguage(lang);
-    setShowLanguageModal(false);
   };
 
   const loadUserDetails = async () => {
@@ -135,33 +127,11 @@ export default function ProfileScreen() {
   };
 
   const isDark = currentTheme === 'dark';
-  const isReading = currentTheme === 'reading';
-  // Reading mode: warm sepia tones
-  const gradientColors: [string, string] = isDark 
-    ? ["#434343", "#000000"] 
-    : isReading 
-    ? ["#F7F3E9", "#FAF8F3"]
-    : ["#F8F9FA", "#E9ECEF"];
-  const headerBgColor = isDark 
-    ? "rgba(255, 255, 255, 0.1)" 
-    : isReading 
-    ? "rgba(139, 115, 85, 0.1)"
-    : "rgba(0, 0, 0, 0.05)";
-  const textColor = isDark 
-    ? "white" 
-    : isReading 
-    ? "#5D4037"
-    : "#1e1e1e";
-  const iconColor = isDark 
-    ? "white" 
-    : isReading 
-    ? "#5D4037"
-    : "#1e1e1e";
-  const loadingTextColor = isDark 
-    ? "white" 
-    : isReading 
-    ? "#5D4037"
-    : "#1e1e1e";
+  const gradientColors: [string, string] = isDark ? ["#434343", "#000000"] : ["#F8F9FA", "#E9ECEF"];
+  const headerBgColor = isDark ? "rgba(255, 255, 255, 0.1)" : "rgba(0, 0, 0, 0.05)";
+  const textColor = isDark ? "white" : "#1e1e1e";
+  const iconColor = isDark ? "white" : "#1e1e1e";
+  const loadingTextColor = isDark ? "white" : "#1e1e1e";
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -172,18 +142,13 @@ export default function ProfileScreen() {
         style={styles.container}
       >
         <View style={[styles.header, { backgroundColor: headerBgColor }]}>
-          <Text style={[styles.headerTitle, { color: textColor }]}>{t('profile.title')}</Text>
+          <Text style={[styles.headerTitle, { color: textColor }]}>Profile</Text>
           {!loading && userDetails && !isEditing && (
             <View style={styles.headerIcons}>
               <TouchableOpacity onPress={handleEdit} style={[styles.editButton, styles.pencilButton]}>
                 <MaterialCommunityIcons name="pencil" size={24} color={iconColor} />
               </TouchableOpacity>
-              <TouchableOpacity 
-                onPress={() => {
-                  setShowThemeModal(true);
-                }} 
-                style={styles.settingsButton}
-              >
+              <TouchableOpacity onPress={() => setShowThemeModal(true)} style={styles.settingsButton}>
                 <MaterialCommunityIcons name="cog" size={24} color={iconColor} />
               </TouchableOpacity>
             </View>
@@ -202,16 +167,16 @@ export default function ProfileScreen() {
             keyboardShouldPersistTaps="handled"
           >
             {loading ? (
-              <Text style={[styles.loadingText, { color: loadingTextColor }]}>{t('common.loading')}</Text>
+              <Text style={[styles.loadingText, { color: loadingTextColor }]}>Loading...</Text>
             ) : userDetails || isEditing ? (
               <View style={styles.card}>
-                <Text style={styles.cardTitle}>{t('profile.personalInfo')}</Text>
+                <Text style={styles.cardTitle}>Personal Information</Text>
                 
                 {isEditing ? (
                   <>
                     {/* Age Input */}
                     <View style={styles.inputRow}>
-                      <Text style={styles.inputLabel}>{t('profile.age')}</Text>
+                      <Text style={styles.inputLabel}>Age</Text>
                       <TextInput
                         style={styles.input}
                         placeholder="e.g. 22"
@@ -225,7 +190,7 @@ export default function ProfileScreen() {
                     {/* Weight and Height Row */}
                     <View style={styles.inputRowDouble}>
                       <View style={[styles.inputHalf, { marginRight: 6 }]}>
-                        <Text style={styles.inputLabel}>{t('userDetails.weight')}</Text>
+                        <Text style={styles.inputLabel}>Weight (kg)</Text>
                         <TextInput
                           style={styles.input}
                           placeholder="kg"
@@ -236,7 +201,7 @@ export default function ProfileScreen() {
                         />
                       </View>
                       <View style={[styles.inputHalf, { marginLeft: 6 }]}>
-                        <Text style={styles.inputLabel}>{t('userDetails.height')}</Text>
+                        <Text style={styles.inputLabel}>Height (cm)</Text>
                         <TextInput
                           style={styles.input}
                           placeholder="cm"
@@ -250,7 +215,7 @@ export default function ProfileScreen() {
 
                     {/* Gender Selection */}
                     <View style={styles.inputRow}>
-                      <Text style={styles.inputLabel}>{t('profile.gender')}</Text>
+                      <Text style={styles.inputLabel}>Gender</Text>
                       <View style={styles.genderRow}>
                         {genderOptions.map((option) => {
                           const selected = gender === option;
@@ -271,7 +236,7 @@ export default function ProfileScreen() {
                                   selected && styles.genderButtonTextSelected,
                                 ]}
                               >
-                                {t(`userDetails.genderOptions.${option}`)}
+                                {option.charAt(0).toUpperCase() + option.slice(1)}
                               </Text>
                             </TouchableOpacity>
                           );
@@ -293,7 +258,7 @@ export default function ProfileScreen() {
                         style={[styles.actionButton, styles.cancelButton, { marginRight: 6 }]}
                         disabled={saving}
                       >
-                        <Text style={styles.cancelButtonText}>{t('profile.cancelEdit')}</Text>
+                        <Text style={styles.cancelButtonText}>Cancel</Text>
                       </TouchableOpacity>
                       <TouchableOpacity
                         onPress={handleSave}
@@ -307,7 +272,7 @@ export default function ProfileScreen() {
                           style={styles.saveButtonGradient}
                         >
                           <Text style={styles.saveButtonText}>
-                            {saving ? t('common.loading') : t('common.save')}
+                            {saving ? "Saving..." : "Save"}
                           </Text>
                         </LinearGradient>
                       </TouchableOpacity>
@@ -317,21 +282,21 @@ export default function ProfileScreen() {
                   <>
                     {/* View Mode */}
                     <View style={styles.infoRow}>
-                      <Text style={styles.infoLabel}>{t('profile.age')}:</Text>
-                      <Text style={styles.infoValue}>{userDetails?.age || t('common.notSet')}</Text>
+                      <Text style={styles.infoLabel}>Age:</Text>
+                      <Text style={styles.infoValue}>{userDetails?.age || "Not set"}</Text>
                     </View>
                     <View style={styles.infoRow}>
-                      <Text style={styles.infoLabel}>{t('profile.weight')}:</Text>
-                      <Text style={styles.infoValue}>{userDetails?.weight || t('common.notSet')} kg</Text>
+                      <Text style={styles.infoLabel}>Weight:</Text>
+                      <Text style={styles.infoValue}>{userDetails?.weight || "Not set"} kg</Text>
                     </View>
                     <View style={styles.infoRow}>
-                      <Text style={styles.infoLabel}>{t('profile.height')}:</Text>
-                      <Text style={styles.infoValue}>{userDetails?.height || t('common.notSet')} cm</Text>
+                      <Text style={styles.infoLabel}>Height:</Text>
+                      <Text style={styles.infoValue}>{userDetails?.height || "Not set"} cm</Text>
                     </View>
                     <View style={styles.infoRow}>
-                      <Text style={styles.infoLabel}>{t('profile.gender')}:</Text>
+                      <Text style={styles.infoLabel}>Gender:</Text>
                       <Text style={styles.infoValue}>
-                        {userDetails?.gender ? t(`userDetails.genderOptions.${userDetails.gender}`) : t('common.notSet')}
+                        {userDetails?.gender ? userDetails.gender.charAt(0).toUpperCase() + userDetails.gender.slice(1) : "Not set"}
                       </Text>
                     </View>
                   </>
@@ -355,7 +320,7 @@ export default function ProfileScreen() {
                   end={{ x: 1, y: 1 }}
                   style={styles.logoutButtonGradient}
                 >
-                  <Text style={styles.logoutButtonText}>{t('profile.logout')}</Text>
+                  <Text style={styles.logoutButtonText}>Logout</Text>
                 </LinearGradient>
               </TouchableOpacity>
             )}
@@ -371,29 +336,8 @@ export default function ProfileScreen() {
         >
           <View style={styles.modalOverlay}>
             <View style={styles.modalContent}>
-              <Text style={styles.modalTitle}>{t('profile.selectTheme')}</Text>
-              <View style={styles.modalTabContainer}>
-                <TouchableOpacity
-                  style={[styles.modalTab, !showLanguageModal && styles.modalTabActive]}
-                  onPress={() => setShowLanguageModal(false)}
-                >
-                  <Text style={[styles.modalTabText, !showLanguageModal && styles.modalTabTextActive]}>
-                    {t('profile.theme')}
-                  </Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[styles.modalTab, showLanguageModal && styles.modalTabActive]}
-                  onPress={() => setShowLanguageModal(true)}
-                >
-                  <Text style={[styles.modalTabText, showLanguageModal && styles.modalTabTextActive]}>
-                    {t('profile.language')}
-                  </Text>
-                </TouchableOpacity>
-              </View>
-              
-              {!showLanguageModal ? (
-                <>
-                  <Text style={styles.modalSubtitle}>Choose your preferred app theme</Text>
+              <Text style={styles.modalTitle}>Select Theme</Text>
+              <Text style={styles.modalSubtitle}>Choose your preferred app theme</Text>
               
               <TouchableOpacity
                 style={[
@@ -411,7 +355,7 @@ export default function ProfileScreen() {
                   styles.themeOptionText,
                   themeMode === 'light' && styles.themeOptionTextSelected
                 ]}>
-                  {t('profile.lightMode')}
+                  Light Mode
                 </Text>
                 {themeMode === 'light' && (
                   <MaterialCommunityIcons name="check-circle" size={24} color="#22C55E" />
@@ -434,36 +378,13 @@ export default function ProfileScreen() {
                   styles.themeOptionText,
                   themeMode === 'dark' && styles.themeOptionTextSelected
                 ]}>
-                  {t('profile.darkMode')}
+                  Dark Mode
                 </Text>
                 {themeMode === 'dark' && (
                   <MaterialCommunityIcons name="check-circle" size={24} color="#22C55E" />
                 )}
               </TouchableOpacity>
-
-              <TouchableOpacity
-                style={[
-                  styles.themeOption,
-                  themeMode === 'reading' && styles.themeOptionSelected
-                ]}
-                onPress={() => handleThemeChange('reading')}
-              >
-                <MaterialCommunityIcons 
-                  name="book-open-variant" 
-                  size={24} 
-                  color={themeMode === 'reading' ? "#22C55E" : "#666"} 
-                />
-                <Text style={[
-                  styles.themeOptionText,
-                  themeMode === 'reading' && styles.themeOptionTextSelected
-                ]}>
-                  {t('profile.readingMode')}
-                </Text>
-                {themeMode === 'reading' && (
-                  <MaterialCommunityIcons name="check-circle" size={24} color="#22C55E" />
-                )}
-              </TouchableOpacity>
-               
+              
               <TouchableOpacity
                 style={[
                   styles.themeOption,
@@ -480,96 +401,18 @@ export default function ProfileScreen() {
                   styles.themeOptionText,
                   themeMode === 'auto' && styles.themeOptionTextSelected
                 ]}>
-                  {t('profile.autoMode')}
+                  Auto (System)
                 </Text>
                 {themeMode === 'auto' && (
                   <MaterialCommunityIcons name="check-circle" size={24} color="#22C55E" />
                 )}
               </TouchableOpacity>
-              </>
-            ) : (
-              <>
-                <Text style={styles.modalSubtitle}>{t('profile.selectLanguage')}</Text>
-                
-                <TouchableOpacity
-                  style={[
-                    styles.themeOption,
-                    language === 'en' && styles.themeOptionSelected
-                  ]}
-                  onPress={() => handleLanguageChange('en')}
-                >
-                  <MaterialCommunityIcons 
-                    name="translate" 
-                    size={24} 
-                    color={language === 'en' ? "#22C55E" : "#666"} 
-                  />
-                  <Text style={[
-                    styles.themeOptionText,
-                    language === 'en' && styles.themeOptionTextSelected
-                  ]}>
-                    {t('profile.english')}
-                  </Text>
-                  {language === 'en' && (
-                    <MaterialCommunityIcons name="check-circle" size={24} color="#22C55E" />
-                  )}
-                </TouchableOpacity>
-                
-                <TouchableOpacity
-                  style={[
-                    styles.themeOption,
-                    language === 'hi' && styles.themeOptionSelected
-                  ]}
-                  onPress={() => handleLanguageChange('hi')}
-                >
-                  <MaterialCommunityIcons 
-                    name="translate" 
-                    size={24} 
-                    color={language === 'hi' ? "#22C55E" : "#666"} 
-                  />
-                  <Text style={[
-                    styles.themeOptionText,
-                    language === 'hi' && styles.themeOptionTextSelected
-                  ]}>
-                    {t('profile.hindi')}
-                  </Text>
-                  {language === 'hi' && (
-                    <MaterialCommunityIcons name="check-circle" size={24} color="#22C55E" />
-                  )}
-                </TouchableOpacity>
-                
-                <TouchableOpacity
-                  style={[
-                    styles.themeOption,
-                    language === 'kn' && styles.themeOptionSelected
-                  ]}
-                  onPress={() => handleLanguageChange('kn')}
-                >
-                  <MaterialCommunityIcons 
-                    name="translate" 
-                    size={24} 
-                    color={language === 'kn' ? "#22C55E" : "#666"} 
-                  />
-                  <Text style={[
-                    styles.themeOptionText,
-                    language === 'kn' && styles.themeOptionTextSelected
-                  ]}>
-                    {t('profile.kannada')}
-                  </Text>
-                  {language === 'kn' && (
-                    <MaterialCommunityIcons name="check-circle" size={24} color="#22C55E" />
-                  )}
-                </TouchableOpacity>
-              </>
-            )}
               
               <TouchableOpacity
                 style={styles.modalCloseButton}
-                onPress={() => {
-                  setShowThemeModal(false);
-                  setShowLanguageModal(false);
-                }}
+                onPress={() => setShowThemeModal(false)}
               >
-                <Text style={styles.modalCloseButtonText}>{t('common.close')}</Text>
+                <Text style={styles.modalCloseButtonText}>Close</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -850,30 +693,6 @@ const styles = StyleSheet.create({
     color: "#ffffff",
     fontSize: 16,
     fontWeight: "700",
-  },
-  modalTabContainer: {
-    flexDirection: 'row',
-    marginBottom: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
-  },
-  modalTab: {
-    flex: 1,
-    paddingVertical: 12,
-    alignItems: 'center',
-    borderBottomWidth: 2,
-    borderBottomColor: 'transparent',
-  },
-  modalTabActive: {
-    borderBottomColor: '#22C55E',
-  },
-  modalTabText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#666',
-  },
-  modalTabTextActive: {
-    color: '#22C55E',
   },
 });
 

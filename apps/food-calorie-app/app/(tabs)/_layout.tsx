@@ -7,11 +7,9 @@ import { IconSymbol } from "@/components/ui/IconSymbol";
 import TabBarBackground from "@/components/ui/TabBarBackground";
 import { Colors } from "@/constants/Colors";
 import { useColorScheme } from "@/hooks/useColorScheme";
-import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
-  const { t } = useLanguage();
 
   return (
     <Tabs
@@ -32,7 +30,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: t('home.title'),
+          title: "Home",
           tabBarIcon: ({ color }) => (
             <IconSymbol size={28} name="house.fill" color={color} />
           ),
@@ -41,7 +39,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="explore"
         options={{
-          title: t('camera.title'),
+          title: "Camera",
           tabBarIcon: ({ color }) => (
             <IconSymbol size={28} name="paperplane.fill" color={color} />
           ),
@@ -50,7 +48,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="bmi"
         options={{
-          title: t('bmi.title'),
+          title: "BMI",
           tabBarIcon: ({ color }) => (
             <IconSymbol size={28} name="scalemass.fill" color={color} />
           ),
@@ -59,7 +57,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="profile"
         options={{
-          title: t('profile.title'),
+          title: "Profile",
           tabBarIcon: ({ color }) => (
             <IconSymbol size={28} name="person.fill" color={color} />
           ),

@@ -14,13 +14,10 @@ import { LinearGradient } from "expo-linear-gradient";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useTheme } from "@/contexts/ThemeContext";
-import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function BMIScreen() {
   const { currentTheme } = useTheme();
-  const { t } = useLanguage();
   const isDark = currentTheme === 'dark';
-  const isReading = currentTheme === 'reading';
   const [weight, setWeight] = useState("");
   const [height, setHeight] = useState("");
   const [bmi, setBmi] = useState<number | null>(null);
@@ -28,26 +25,10 @@ export default function BMIScreen() {
   const [bmiColor, setBmiColor] = useState<string>("#4ECDC4");
 
   // Theme colors
-  const gradientColors: [string, string] = isDark 
-    ? ["#434343", "#000000"] 
-    : isReading 
-    ? ["#F7F3E9", "#FAF8F3"]
-    : ["#F8F9FA", "#E9ECEF"];
-  const headerBgColor = isDark 
-    ? "rgba(255, 255, 255, 0.1)" 
-    : isReading 
-    ? "rgba(139, 115, 85, 0.1)"
-    : "rgba(0, 0, 0, 0.05)";
-  const textColor = isDark 
-    ? "white" 
-    : isReading 
-    ? "#5D4037"
-    : "#1e1e1e";
-  const iconColor = isDark 
-    ? "white" 
-    : isReading 
-    ? "#5D4037"
-    : "#1e1e1e";
+  const gradientColors: [string, string] = isDark ? ["#434343", "#000000"] : ["#F8F9FA", "#E9ECEF"];
+  const headerBgColor = isDark ? "rgba(255, 255, 255, 0.1)" : "rgba(0, 0, 0, 0.05)";
+  const textColor = isDark ? "white" : "#1e1e1e";
+  const iconColor = isDark ? "white" : "#1e1e1e";
   const cardBgColor = isDark ? "white" : "white";
   const cardTitleColor = isDark ? "#1e1e1e" : "#1e1e1e";
   const cardSubtitleColor = isDark ? "#666" : "#666";
@@ -74,7 +55,7 @@ export default function BMIScreen() {
 
     // Validate inputs
     if (!weight || !height) {
-      Alert.alert(t('common.error'), t('bmi.invalidInput'));
+      Alert.alert("Error", "Please enter both weight and height");
       return;
     }
 
@@ -105,16 +86,16 @@ export default function BMIScreen() {
     let color = "";
 
     if (calculatedBmi < 18.5) {
-      category = t('bmi.scale.underweight');
+      category = "Underweight";
       color = "#3B82F6"; // Blue
     } else if (calculatedBmi < 25) {
-      category = t('bmi.scale.normal');
+      category = "Normal Weight";
       color = "#22C55E"; // Green
     } else if (calculatedBmi < 30) {
-      category = t('bmi.scale.overweight');
+      category = "Overweight";
       color = "#F59E0B"; // Orange
     } else {
-      category = t('bmi.scale.obese');
+      category = "Obese";
       color = "#EF4444"; // Red
     }
 
@@ -139,7 +120,7 @@ export default function BMIScreen() {
         style={styles.container}
       >
         <View style={[styles.header, { backgroundColor: headerBgColor }]}>
-          <Text style={[styles.headerTitle, { color: textColor }]}>{t('bmi.title')}</Text>
+          <Text style={[styles.headerTitle, { color: textColor }]}>BMI Calculator</Text>
           <MaterialCommunityIcons name="human-handsup" size={32} color={iconColor} />
         </View>
 
@@ -155,9 +136,9 @@ export default function BMIScreen() {
             keyboardShouldPersistTaps="handled"
           >
             <View style={[styles.card, { backgroundColor: cardBgColor }]}>
-              <Text style={[styles.cardTitle, { color: cardTitleColor }]}>{t('bmi.title')}</Text>
+              <Text style={[styles.cardTitle, { color: cardTitleColor }]}>Enter Your Details</Text>
               <Text style={[styles.cardSubtitle, { color: cardSubtitleColor }]}>
-                {t('bmi.subtitle')}
+                Calculate your Body Mass Index (BMI)
               </Text>
 
               {/* Weight Input */}
@@ -168,7 +149,7 @@ export default function BMIScreen() {
                     size={20}
                     color={inputLabelColor}
                   />
-                  <Text style={[styles.inputLabel, { color: inputLabelColor }]}>{t('bmi.weight')}</Text>
+                  <Text style={[styles.inputLabel, { color: inputLabelColor }]}>Weight (kg)</Text>
                 </View>
                 <TextInput
                   style={[styles.input, { backgroundColor: inputBgColor, borderColor: inputBorderColor, color: inputTextColor }]}
@@ -188,7 +169,7 @@ export default function BMIScreen() {
                     size={20}
                     color={inputLabelColor}
                   />
-                  <Text style={[styles.inputLabel, { color: inputLabelColor }]}>{t('bmi.height')}</Text>
+                  <Text style={[styles.inputLabel, { color: inputLabelColor }]}>Height (cm)</Text>
                 </View>
                 <TextInput
                   style={[styles.input, { backgroundColor: inputBgColor, borderColor: inputBorderColor, color: inputTextColor }]}
@@ -213,7 +194,7 @@ export default function BMIScreen() {
                   style={styles.calculateButtonGradient}
                 >
                   <MaterialCommunityIcons name="calculator" size={24} color="white" />
-                  <Text style={styles.calculateButtonText}>{t('bmi.calculate')}</Text>
+                  <Text style={styles.calculateButtonText}>Calculate BMI</Text>
                 </LinearGradient>
               </TouchableOpacity>
             </View>
@@ -221,7 +202,7 @@ export default function BMIScreen() {
             {/* BMI Result Card */}
             {bmi !== null && (
               <View style={[styles.resultCard, { backgroundColor: resultCardBgColor, borderColor: resultCardBorderColor }]}>
-                <Text style={[styles.resultTitle, { color: resultTitleColor }]}>{t('bmi.result')}</Text>
+                <Text style={[styles.resultTitle, { color: resultTitleColor }]}>Your BMI Result</Text>
                 <View style={styles.bmiDisplay}>
                   <Text style={[styles.bmiValue, { color: bmiColor }]}>
                     {bmi}
@@ -236,28 +217,28 @@ export default function BMIScreen() {
 
                 {/* BMI Scale Info */}
                 <View style={styles.scaleContainer}>
-                  <Text style={[styles.scaleTitle, { color: scaleTitleColor }]}>{t('bmi.scale.title')}</Text>
+                  <Text style={[styles.scaleTitle, { color: scaleTitleColor }]}>BMI Scale</Text>
                   <View style={styles.scaleItem}>
                     <View style={[styles.scaleIndicator, { backgroundColor: "#3B82F6" }]} />
                     <Text style={[styles.scaleText, { color: scaleTextColor }]}>
-                      {t('bmi.scale.underweight')}: &lt; 18.5
+                      Underweight: &lt; 18.5
                     </Text>
                   </View>
                   <View style={styles.scaleItem}>
                     <View style={[styles.scaleIndicator, { backgroundColor: "#22C55E" }]} />
                     <Text style={[styles.scaleText, { color: scaleTextColor }]}>
-                      {t('bmi.scale.normal')}: 18.5 - 24.9
+                      Normal Weight: 18.5 - 24.9
                     </Text>
                   </View>
                   <View style={styles.scaleItem}>
                     <View style={[styles.scaleIndicator, { backgroundColor: "#F59E0B" }]} />
                     <Text style={[styles.scaleText, { color: scaleTextColor }]}>
-                      {t('bmi.scale.overweight')}: 25 - 29.9
+                      Overweight: 25 - 29.9
                     </Text>
                   </View>
                   <View style={styles.scaleItem}>
                     <View style={[styles.scaleIndicator, { backgroundColor: "#EF4444" }]} />
-                    <Text style={[styles.scaleText, { color: scaleTextColor }]}>{t('bmi.scale.obese')}: ≥ 30</Text>
+                    <Text style={[styles.scaleText, { color: scaleTextColor }]}>Obese: ≥ 30</Text>
                   </View>
                 </View>
 
@@ -266,7 +247,7 @@ export default function BMIScreen() {
                   onPress={resetCalculator}
                   style={[styles.resetButton, { backgroundColor: resetButtonBgColor, borderColor: resetButtonBorderColor }]}
                 >
-                  <Text style={[styles.resetButtonText, { color: resetButtonTextColor }]}>{t('bmi.reset')}</Text>
+                  <Text style={[styles.resetButtonText, { color: resetButtonTextColor }]}>Calculate Again</Text>
                 </TouchableOpacity>
               </View>
             )}

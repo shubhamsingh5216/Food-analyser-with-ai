@@ -11,7 +11,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { Easing } from "react-native-reanimated";
-import { useFocusEffect, useRouter } from "expo-router";
+import { useFocusEffect } from "expo-router";
 import {
   fetchFoodByUserIdForToday,
   getMealTypeByMealIdForToday,
@@ -20,14 +20,10 @@ import { getUserNameByPhone } from "@/services/userService";
 import { getCurrentUserPhone } from "@/utils/session";
 import { GroupedMeal, Meal, NutrientItem, NutrientTotals } from "@/types";
 import { useTheme } from "@/contexts/ThemeContext";
-import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function HomeScreen() {
-  const router = useRouter();
   const { currentTheme } = useTheme();
-  const { t } = useLanguage();
   const isDark = currentTheme === 'dark';
-  const isReading = currentTheme === 'reading';
   const [foodData, setFoodData] = useState<Meal[]>([]);
   const [userName, setUserName] = useState<string>("");
   const fadeAnim = React.useRef(new Animated.Value(0)).current;
@@ -36,46 +32,14 @@ export default function HomeScreen() {
   const cameraButtonAnim = React.useRef(new Animated.Value(1)).current;
   const pulseAnim = React.useRef(new Animated.Value(1)).current;
 
-  const gradientColors: [string, string] = isDark 
-    ? ["#434343", "#000000"] 
-    : isReading 
-    ? ["#F7F3E9", "#FAF8F3"]
-    : ["#F8F9FA", "#E9ECEF"];
-  const headerBgColor = isDark 
-    ? "rgba(255, 255, 255, 0.1)" 
-    : isReading 
-    ? "rgba(139, 115, 85, 0.1)"
-    : "rgba(0, 0, 0, 0.05)";
-  const textColor = isDark 
-    ? "white" 
-    : isReading 
-    ? "#5D4037"
-    : "#1e1e1e";
-  const secondaryTextColor = isDark 
-    ? "rgba(255, 255, 255, 0.9)" 
-    : isReading 
-    ? "rgba(93, 64, 55, 0.9)"
-    : "rgba(30, 30, 30, 0.9)";
-  const dateTextColor = isDark 
-    ? "rgba(255, 255, 255, 0.8)" 
-    : isReading 
-    ? "rgba(93, 64, 55, 0.8)"
-    : "rgba(30, 30, 30, 0.8)";
-  const sectionTitleColor = isDark 
-    ? "white" 
-    : isReading 
-    ? "#5D4037"
-    : "#1e1e1e";
-  const cameraButtonColors: [string, string] = isDark 
-    ? ["#434343", "#000000"] 
-    : isReading 
-    ? ["#E8DDCA", "#D4C5B0"]
-    : ["#E9ECEF", "#DEE2E6"];
-  const cameraIconColor = isDark 
-    ? "white" 
-    : isReading 
-    ? "#5D4037"
-    : "#1e1e1e";
+  const gradientColors: [string, string] = isDark ? ["#434343", "#000000"] : ["#F8F9FA", "#E9ECEF"];
+  const headerBgColor = isDark ? "rgba(255, 255, 255, 0.1)" : "rgba(0, 0, 0, 0.05)";
+  const textColor = isDark ? "white" : "#1e1e1e";
+  const secondaryTextColor = isDark ? "rgba(255, 255, 255, 0.9)" : "rgba(30, 30, 30, 0.9)";
+  const dateTextColor = isDark ? "rgba(255, 255, 255, 0.8)" : "rgba(30, 30, 30, 0.8)";
+  const sectionTitleColor = isDark ? "white" : "#1e1e1e";
+  const cameraButtonColors: [string, string] = isDark ? ["#434343", "#000000"] : ["#E9ECEF", "#DEE2E6"];
+  const cameraIconColor = isDark ? "white" : "#1e1e1e";
 
   const calculateTotalNutrients = (): NutrientTotals => {
     return foodData.reduce(
@@ -96,33 +60,33 @@ export default function HomeScreen() {
   const nutrients: NutrientItem[] = [
     {
       icon: "fire",
-      title: t('home.calories'),
+      title: "Calories",
       value: totals.calories.toFixed(0),
-      unit: t('home.kcal'),
+      unit: "kcal",
       target: "2,000",
       color: "#FF6B6B",
     },
     {
       icon: "food-steak",
-      title: t('home.protein'),
+      title: "Protein",
       value: totals.protein.toFixed(1),
-      unit: t('home.g'),
+      unit: "g",
       target: "80",
       color: "#4ECDC4",
     },
     {
       icon: "bread-slice",
-      title: t('home.carbs'),
+      title: "Carbs",
       value: totals.carbs.toFixed(1),
-      unit: t('home.g'),
+      unit: "g",
       target: "250",
       color: "#FFD93D",
     },
     {
       icon: "oil",
-      title: t('home.fats'),
+      title: "Fats",
       value: totals.fats.toFixed(1),
-      unit: t('home.g'),
+      unit: "g",
       target: "65",
       color: "#95A5A6",
     },
@@ -161,7 +125,7 @@ export default function HomeScreen() {
       );
 
       // Sort meals in chronological order
-      const mealOrder = [t('home.breakfast'), t('home.lunch'), t('home.dinner'), t('home.snack'), "Other"];
+      const mealOrder = ["Breakfast", "Lunch", "Dinner", "Snack", "Other"];
       return Object.values(tempMeals).sort(
         (a, b) => mealOrder.indexOf(a.time) - mealOrder.indexOf(b.time)
       );
@@ -273,9 +237,9 @@ export default function HomeScreen() {
   console.log("foodData", JSON.stringify(foodData));
   const getTimeOfDay = (): string => {
     const hour = new Date().getHours();
-    if (hour < 12) return t('home.greeting.morning');
-    if (hour < 17) return t('home.greeting.afternoon');
-    return t('home.greeting.evening');
+    if (hour < 12) return "Morning";
+    if (hour < 17) return "Afternoon";
+    return "Evening";
   };
 
   const spin = rotateAnim.interpolate({
@@ -338,7 +302,7 @@ export default function HomeScreen() {
           />
         </View>
         <Text style={styles.targetText}>
-          {t('home.target')}: {target} {unit}
+          Target: {target} {unit}
         </Text>
       </View>
     </Animated.View>
@@ -355,7 +319,7 @@ export default function HomeScreen() {
         <View style={[styles.headerContainer, { backgroundColor: headerBgColor }]}>
           <View>
             <Animated.Text style={[styles.greeting, { opacity: fadeAnim, color: textColor }]}>
-              {getTimeOfDay()}!
+              Good {getTimeOfDay()}!
             </Animated.Text>
             {userName && (
               <Animated.Text style={[styles.userName, { opacity: fadeAnim, color: secondaryTextColor }]}>
@@ -370,20 +334,6 @@ export default function HomeScreen() {
               })}
             </Animated.Text>
           </View>
-          <TouchableOpacity
-            onPress={() => router.push("/chat")}
-            style={styles.chatButton}
-            activeOpacity={0.8}
-          >
-            <LinearGradient
-              colors={["#22C55E", "#16A34A"]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={styles.chatButtonGradient}
-            >
-              <MaterialCommunityIcons name="robot" size={24} color="white" />
-            </LinearGradient>
-          </TouchableOpacity>
         </View>
         <ScrollView
           style={styles.scrollView}
@@ -393,7 +343,7 @@ export default function HomeScreen() {
             {nutrients.map(renderNutrientCard)}
           </View>
           <View style={styles.mealHistoryContainer}>
-            <Text style={[styles.sectionTitle, { color: sectionTitleColor }]}>{t('home.meals')}</Text>
+            <Text style={[styles.sectionTitle, { color: sectionTitleColor }]}>Today's Meals</Text>
             {mealHistory.map((meal, index) => (
               <Animated.View
                 key={`${meal.time}-${index}`}
@@ -496,29 +446,6 @@ const styles = StyleSheet.create({
     borderBottomLeftRadius: 20,
     borderBottomRightRadius: 20,
     marginBottom: 10,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  chatButton: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    overflow: "hidden",
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 6,
-  },
-  chatButtonGradient: {
-    width: "100%",
-    height: "100%",
-    justifyContent: "center",
-    alignItems: "center",
   },
   greeting: {
     fontSize: 32,

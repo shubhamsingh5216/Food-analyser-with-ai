@@ -23,43 +23,18 @@ export const Dropdown: React.FC<DropdownProps> = ({
 }) => {
   const { currentTheme } = useTheme();
   const isDark = currentTheme === 'dark';
-  const isReading = currentTheme === 'reading';
   const [modalVisible, setModalVisible] = useState(false);
 
   const selectedOption = options.find(opt => opt.value === selectedValue);
   
   // Theme colors
-  const modalOverlayColor = isDark 
-    ? "rgba(0, 0, 0, 0.5)" 
-    : isReading 
-    ? "rgba(139, 115, 85, 0.2)"
-    : "rgba(0, 0, 0, 0.3)";
-  const modalBgColor = isDark 
-    ? "#2a2a2a" 
-    : isReading 
-    ? "#F7F3E9"
-    : "#FFFFFF";
-  const optionBgColor = isDark 
-    ? "#3a3a3a" 
-    : isReading 
-    ? "#FFF8DC"
-    : "#F8F9FA";
+  const modalOverlayColor = isDark ? "rgba(0, 0, 0, 0.5)" : "rgba(0, 0, 0, 0.3)";
+  const modalBgColor = isDark ? "#2a2a2a" : "#FFFFFF";
+  const optionBgColor = isDark ? "#3a3a3a" : "#F8F9FA";
   const optionSelectedBgColor = "#4CAF50"; // Keep green for selected
-  const textColor = isDark 
-    ? "#fff" 
-    : isReading 
-    ? "#5D4037"
-    : "#1e1e1e";
-  const cancelButtonBgColor = isDark 
-    ? "#3a3a3a" 
-    : isReading 
-    ? "#E8DDCA"
-    : "#F3F4F6";
-  const cancelButtonTextColor = isDark 
-    ? "#fff" 
-    : isReading 
-    ? "#5D4037"
-    : "#1e1e1e";
+  const textColor = isDark ? "#fff" : "#1e1e1e";
+  const cancelButtonBgColor = isDark ? "#3a3a3a" : "#F3F4F6";
+  const cancelButtonTextColor = isDark ? "#fff" : "#1e1e1e";
 
   const getMealColor = (mealType: string) => {
     // Use the exact same green color as the "Add Dish" button (#4CAF50)

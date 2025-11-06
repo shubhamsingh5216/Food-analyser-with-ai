@@ -1,11 +1,11 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { useColorScheme, Platform } from 'react-native';
 
-type ThemeMode = 'light' | 'dark' | 'auto' | 'reading';
+type ThemeMode = 'light' | 'dark' | 'auto';
 
 interface ThemeContextType {
   themeMode: ThemeMode;
-  currentTheme: 'light' | 'dark' | 'reading';
+  currentTheme: 'light' | 'dark';
   setThemeMode: (mode: ThemeMode) => Promise<void>;
 }
 
@@ -50,7 +50,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     const loadTheme = async () => {
       try {
         const savedTheme = await getStorageItem(THEME_STORAGE_KEY);
-        if (savedTheme && (savedTheme === 'light' || savedTheme === 'dark' || savedTheme === 'auto' || savedTheme === 'reading')) {
+        if (savedTheme && (savedTheme === 'light' || savedTheme === 'dark' || savedTheme === 'auto')) {
           setThemeModeState(savedTheme as ThemeMode);
         }
       } catch (error) {
@@ -64,11 +64,9 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   }, []);
 
   // Calculate current theme based on mode
-  const currentTheme: 'light' | 'dark' | 'reading' = 
+  const currentTheme: 'light' | 'dark' = 
     themeMode === 'auto' 
       ? (systemColorScheme ?? 'light')
-      : themeMode === 'reading'
-      ? 'reading'
       : themeMode;
 
   const setThemeMode = async (mode: ThemeMode) => {

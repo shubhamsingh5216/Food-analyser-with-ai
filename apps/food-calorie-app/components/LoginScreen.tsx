@@ -15,64 +15,21 @@ import { insertUser } from "@/services/userService";
 import { setCurrentUserPhone } from "@/utils/session";
 import { testSupabaseConnection } from "@/utils/supabaseTest";
 import { useTheme } from "@/contexts/ThemeContext";
-import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function LoginScreen() {
   const router = useRouter();
   const { currentTheme } = useTheme();
-  const { t } = useLanguage();
   const isDark = currentTheme === 'dark';
-  const isReading = currentTheme === 'reading';
-  const bgColor = isDark 
-    ? "#0B1220" 
-    : isReading 
-    ? "#FAF8F3"
-    : "#FFFFFF";
-  const cardBgColor = isDark 
-    ? "#0F172A" 
-    : isReading 
-    ? "#F7F3E9"
-    : "#F8F9FA";
-  const cardBorderColor = isDark 
-    ? "rgba(255,255,255,0.08)" 
-    : isReading 
-    ? "rgba(139,115,85,0.2)"
-    : "rgba(0,0,0,0.1)";
-  const textColor = isDark 
-    ? "#ffffff" 
-    : isReading 
-    ? "#5D4037"
-    : "#1e1e1e";
-  const subtitleColor = isDark 
-    ? "#E5E7EB" 
-    : isReading 
-    ? "#6D4C41"
-    : "#666666";
-  const labelColor = isDark 
-    ? "#C7D2FE" 
-    : isReading 
-    ? "#5D4037"
-    : "#1e1e1e";
-  const inputBgColor = isDark 
-    ? "#0B1220" 
-    : isReading 
-    ? "#FFF8DC"
-    : "#FFFFFF";
-  const inputBorderColor = isDark 
-    ? "#1F2937" 
-    : isReading 
-    ? "#D7CCC8"
-    : "#D1D5DB";
-  const inputTextColor = isDark 
-    ? "#FFFFFF" 
-    : isReading 
-    ? "#5D4037"
-    : "#1e1e1e";
-  const helperTextColor = isDark 
-    ? "#9CA3AF" 
-    : isReading 
-    ? "#8D6E63"
-    : "#666666";
+  const bgColor = isDark ? "#0B1220" : "#FFFFFF";
+  const cardBgColor = isDark ? "#0F172A" : "#F8F9FA";
+  const cardBorderColor = isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.1)";
+  const textColor = isDark ? "#ffffff" : "#1e1e1e";
+  const subtitleColor = isDark ? "#E5E7EB" : "#666666";
+  const labelColor = isDark ? "#C7D2FE" : "#1e1e1e";
+  const inputBgColor = isDark ? "#0B1220" : "#FFFFFF";
+  const inputBorderColor = isDark ? "#1F2937" : "#D1D5DB";
+  const inputTextColor = isDark ? "#FFFFFF" : "#1e1e1e";
+  const helperTextColor = isDark ? "#9CA3AF" : "#666666";
   const [phone, setPhone] = useState("");
   const [name, setName] = useState("");
   const [loading, setLoading] = useState(false);
@@ -145,8 +102,8 @@ export default function LoginScreen() {
         end={{ x: 1, y: 1 }}
         style={styles.header}
       >
-        <Text style={styles.headerTitle}>{t('login.title')}</Text>
-        <Text style={styles.headerSubtitle}>{t('login.subtitle')}</Text>
+        <Text style={styles.headerTitle}>Welcome back</Text>
+        <Text style={styles.headerSubtitle}>Login to continue tracking</Text>
       </LinearGradient>
 
       <KeyboardAvoidingView
@@ -156,10 +113,10 @@ export default function LoginScreen() {
       >
         <View style={[styles.card, { backgroundColor: cardBgColor, borderColor: cardBorderColor }]}>
           <View style={{ marginBottom: 16 }}>
-            <Text style={[styles.label, { color: labelColor }]}>{t('login.phone')}</Text>
+            <Text style={[styles.label, { color: labelColor }]}>Phone</Text>
             <TextInput
               style={[styles.input, { backgroundColor: inputBgColor, borderColor: inputBorderColor, color: inputTextColor }]}
-              placeholder={t('login.phonePlaceholder')}
+              placeholder="Enter phone number"
               placeholderTextColor="#9CA3AF"
               keyboardType="phone-pad"
               value={phone}
@@ -167,10 +124,10 @@ export default function LoginScreen() {
             />
           </View>
           <View style={{ marginBottom: 8 }}>
-            <Text style={[styles.label, { color: labelColor }]}>{t('login.name')}</Text>
+            <Text style={[styles.label, { color: labelColor }]}>Name</Text>
             <TextInput
               style={[styles.input, { backgroundColor: inputBgColor, borderColor: inputBorderColor, color: inputTextColor }]}
-              placeholder={t('login.namePlaceholder')}
+              placeholder="Enter full name"
               placeholderTextColor="#9CA3AF"
               value={name}
               onChangeText={setName}
@@ -189,11 +146,11 @@ export default function LoginScreen() {
               end={{ x: 1, y: 1 }}
               style={styles.primaryCta}
             >
-              <Text style={styles.primaryCtaText}>{loading ? t('login.signingIn') : t('login.loginButton')}</Text>
+              <Text style={styles.primaryCtaText}>{loading ? "Signing in..." : "Login"}</Text>
             </LinearGradient>
           </TouchableOpacity>
 
-          <Text style={[styles.helper, { color: helperTextColor }]}>{t('login.helperText')}</Text>
+          <Text style={[styles.helper, { color: helperTextColor }]}>We'll create your account if it doesn't exist.</Text>
         </View>
       </KeyboardAvoidingView>
     </View>

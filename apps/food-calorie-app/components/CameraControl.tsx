@@ -2,7 +2,6 @@ import React from "react";
 import { View, TouchableOpacity, Text, StyleSheet, Animated } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { useLanguage } from "@/contexts/LanguageContext";
 
 interface CameraControlsProps {
   onCapture: () => void;
@@ -15,7 +14,6 @@ export const CameraControls: React.FC<CameraControlsProps> = ({
   onFlip,
   loading,
 }) => {
-  const { t } = useLanguage();
   const pulseAnim = React.useRef(new Animated.Value(1)).current;
 
   React.useEffect(() => {
@@ -54,7 +52,7 @@ export const CameraControls: React.FC<CameraControlsProps> = ({
           style={styles.buttonGradient}
         >
           <MaterialCommunityIcons name="camera-flip" size={22} color="white" style={styles.buttonIcon} />
-          <Text style={styles.buttonText}>{t('camera.flip')}</Text>
+          <Text style={styles.buttonText}>Flip</Text>
         </LinearGradient>
       </TouchableOpacity>
 
@@ -83,7 +81,7 @@ export const CameraControls: React.FC<CameraControlsProps> = ({
               style={styles.buttonIcon} 
             />
             <Text style={styles.buttonText}>
-              {loading ? t('camera.processing') : t('camera.takePhoto')}
+              {loading ? "Processing..." : "Capture"}
             </Text>
           </LinearGradient>
         </Animated.View>

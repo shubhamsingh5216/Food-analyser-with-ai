@@ -12,7 +12,6 @@ import "react-native-reanimated";
 
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { ThemeProvider, useTheme } from "@/contexts/ThemeContext";
-import { LanguageProvider } from "@/contexts/LanguageContext";
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -38,9 +37,8 @@ function RootLayoutNav() {
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="(auth)" />
-        <Stack.Screen name="chat" />
       </Stack>
-      <StatusBar style={currentTheme === "dark" ? "light" : currentTheme === "reading" ? "dark" : "dark"} />
+      <StatusBar style={currentTheme === "dark" ? "light" : "dark"} />
     </NavigationThemeProvider>
   );
 }
@@ -49,9 +47,7 @@ export default function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <ThemeProvider>
-        <LanguageProvider>
-          <RootLayoutNav />
-        </LanguageProvider>
+        <RootLayoutNav />
       </ThemeProvider>
     </GestureHandlerRootView>
   );
