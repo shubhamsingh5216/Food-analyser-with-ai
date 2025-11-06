@@ -17,8 +17,10 @@ import { NutritionInfo } from "../types";
 import { FoodDetectionUtils } from "@/utils/FoodDetection";
 import { NutritionResults } from "./NutritionResult";
 import { CameraControls } from "./CameraControl";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function CameraScreen() {
+  const { t } = useLanguage();
   const [capturedPhoto, setCapturedPhoto] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [cameraView, setCameraView] = useState<CameraView | null>(null);
@@ -149,7 +151,7 @@ export default function CameraScreen() {
                     style={styles.uploadButtonGradient}
                   >
                     <MaterialCommunityIcons name="image" size={20} color="white" style={styles.uploadIcon} />
-                    <Text style={styles.uploadButtonText}>Upload Image</Text>
+                    <Text style={styles.uploadButtonText}>{t('camera.uploadImage')}</Text>
                   </LinearGradient>
                 </TouchableOpacity>
               </View>
